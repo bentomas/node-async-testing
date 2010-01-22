@@ -1,0 +1,103 @@
+The hard part of writing a test suite for asynchronous code is that when a test
+fails, you don't know which test it was that failed.
+
+This module aims to address that issue by giving each test its own unique assert
+object.
+
+    test('my test name', function(test) {
+      test.assert.ok(true);
+    });
+
+Because you don't know how long the asynchronous code is going to take no
+results are printed about the tests until the process exits and we know all the
+tests are finished.
+
+The output looks something like this:
+
+> Starting test "this does something" ...
+> Starting test "this doesn't fail" ...
+> Starting test "this does something else" ...
+> Starting test "this fails" ...
+> Starting test "throws" ...
+> 
+> Results:
+> ...F.
+>
+> test "this fails" failed: AssertionError: true == false
+>     at [object Object].ok (/path/to/node-asyncTesting/asyncTesting.js:21:29)
+>     at Timer.<anonymous> (/path/to/node-simpletests/testsExample.js:25:25)
+>     at node.js:988:1
+>     at node.js:992:1
+
+There is also a TestSuite object:
+
+    var ts = new TestSuite('Name');
+    ts.setup = function() {
+      this.foo = 'bar';
+    }
+    ts.runTests({
+        "foo equals bar": function(test) {
+          test.assert.equal('bar', test.foo);
+        }
+      });
+
+The setup function is ran once for each test.  You can also add a
+teardown function:
+
+    var ts = new TestSuite('Name');
+    ts.teardown = function() {
+      this.foo = null;
+    }
+
+Tests suites output a little more information:
+
+> Starting tests for "Name"
+> Starting test "foo equals bar" ...
+> 
+> Ran suite "Name"
+> .
+> 1 test; 0 failures; 1 assertion 
+
+There is a convenience method so if you do know when the test is finished you 
+can call `test.finish()`.  Then if all the tests in the suite are done it will
+immediately output as opposed to waiting for the process to exit.  Currently,
+only test suites are able to take advantage of this because they know exactly
+how many tests exist.
+
+    (new TestSuite()).runTests({
+        "foo equals bar": function(test) {
+          test.assert.equal('bar', test.foo);
+          test.finish();
+        }
+      });
+
+Additionally, if the order of the tests does matter, you can tell the TestSuite
+to wait for each test to finish before starting the next one.  This requires you
+to explicitly say when the test is finished.
+
+    var count = 0;
+    var ts = new TestSuite('Wait');
+    ts.wait = true;
+    ts.runTests({
+        "count equal 0": function(test) {
+          test.assert.equal(0, count);
+          setTimeout(function() {
+            count++;
+            test.finish();
+            }, 50);
+        },
+        "count equal 1": function(test) {
+          test.assert.equal(1, count);
+          test.finish();
+        }
+      });
+
+Finally, if you want to be explicit about the number of assertions run in a
+given test, you can set `numAssertionsExpected` on the test:
+
+
+    // this test will fail
+    test('my test name', function(test) {
+      test.numAssertionsExpected = 3;
+      test.assert.ok(true);
+    });
