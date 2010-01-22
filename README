@@ -1,4 +1,4 @@
-A simple test runner with testing asynchronous testing in mind.
+A simple test runner with testing asynchronous code in mind.
 
 Some goals of the project:
 
@@ -20,6 +20,8 @@ Some goals of the project:
 
   is good enough for me.
 + I'd like it to be as general as possible so you can test anything.
+
+Feedback/suggestions encouraged!
 
 ------------------------------------------------------------
 
