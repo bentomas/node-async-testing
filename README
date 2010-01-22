@@ -1,33 +1,60 @@
+A simple test runner with testing asynchronous testing in mind.
+
+Some goals of the project:
+
++ I want it to be simple.  You create a test and then run the code you want to
+  test and make assertions as you go along.  Tests should be functions.
++ I want to use the assertion module that comes with Node. So, if you are 
+  familiar with those you won't have any problems.  You shouldn't have to learn
+  new assertion functions.  
++ I want test files to be executable by themselves.  So, if your test file is
+  called "my_test_file.js" then "node my_test_file.js" should run the tests.
++ Address the issue of testing asynchronouse code.  Node is asynchronous, so
+  testing should be too.
++ I don't want another behavior driven development testing framework. I don't
+  like specifications and what not. They only add verbosity. 
+  
+      test('X does Y',function() {
+        //test goes here
+      });
+
+  is good enough for me.
++ I'd like it to be as general as possible so you can test anything.
+
+------------------------------------------------------------
+
 The hard part of writing a test suite for asynchronous code is that when a test
 fails, you don't know which test it was that failed.
 
 This module aims to address that issue by giving each test its own unique assert
-object.
+object. That way you know which assertions correspond to which tests.
 
     test('my test name', function(test) {
       test.assert.ok(true);
     });
 
-Because you don't know how long the asynchronous code is going to take no
+Because you don't know how long the asynchronous code is going to take, no
 results are printed about the tests until the process exits and we know all the
-tests are finished.
+tests are finished. It would be confusing to be printing the results of tests
+willy nilly.  This way, you get the results in the order that the tests are 
+written in the file.
 
 The output looks something like this:
 
-> Starting test "this does something" ...
-> Starting test "this doesn't fail" ...
-> Starting test "this does something else" ...
-> Starting test "this fails" ...
-> Starting test "throws" ...
-> 
-> Results:
-> ...F.
->
-> test "this fails" failed: AssertionError: true == false
->     at [object Object].ok (/path/to/node-asyncTesting/asyncTesting.js:21:29)
->     at Timer.<anonymous> (/path/to/node-simpletests/testsExample.js:25:25)
->     at node.js:988:1
->     at node.js:992:1
+    Starting test "this does something" ...
+    Starting test "this doesn't fail" ...
+    Starting test "this does something else" ...
+    Starting test "this fails" ...
+    Starting test "throws" ...
+    
+    Results:
+    ...F.
+    
+    test "this fails" failed: AssertionError: true == false
+        at [object Object].ok (/path/to/node-asyncTesting/asyncTesting.js:21:29)
+        at Timer.<anonymous> (/path/to/node-simpletests/testsExample.js:25:25)
+        at node.js:988:1
+        at node.js:992:1
 
 There is also a TestSuite object:
 
@@ -73,7 +100,8 @@ how many tests exist.
 
 Additionally, if the order of the tests does matter, you can tell the TestSuite
 to wait for each test to finish before starting the next one.  This requires you
-to explicitly say when the test is finished.
+to use the aforementioned function to explicitly indicate when the test
+is finished.
 
     var count = 0;
     var ts = new TestSuite('Wait');
@@ -93,11 +121,20 @@ to explicitly say when the test is finished.
       });
 
 Finally, if you want to be explicit about the number of assertions run in a
-given test, you can set `numAssertionsExpected` on the test:
+given test, you can set `numAssertionsExpected` on the test. This can be helpful
+in asynchronous tests where you want to be sure all the assertions are ran.
 
-
-    // this test will fail
     test('my test name', function(test) {
       test.numAssertionsExpected = 3;
       test.assert.ok(true);
+      // this test will fail
     });
+
+Currently there is no way to know when an error is thrown which test it came
+from (note, I am not referring to failures here but unexpected errors).  This
+could be addressed if you require all async code to be in Promises
+or smething similar (like Spectacular http://github.com/jcrosby/spectacular
+does), but I am not ready to make that requirement right now. If I say
+setTimeout(func, 500); and that function throws an error, there is no way for me
+to know which test it corresponds to. So, currently, if an error is thrown, the
+TestSuite or file exits there.
