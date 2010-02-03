@@ -44,7 +44,7 @@ var Test = function(name, func, suite) {
   this.__symbol = '.';
 };
 Test.prototype.run = function() {
-  sys.puts('Starting test "' + this.__name + '" ...');
+  //sys.puts('Starting test "' + this.__name + '" ...');
   this.__func(this);
 };
 Test.prototype.finish = function() {
@@ -81,7 +81,9 @@ process.addListener('exit', function() {
     }
 
     var failures = [];
-    sys.puts('\nResults:');
+    sys.error('\nResults:');
+
+    var output = '';
     tests.forEach(function(t) {
         if( !t.__finished ) {
           t.finish();
@@ -90,18 +92,18 @@ process.addListener('exit', function() {
           failures.push(t);
         }
 
-        sys.print(t.__symbol);
+        output += t.__symbol;
       });
 
-    sys.puts('');
+    sys.error(output);
     failures.forEach(function(t) {
-        sys.puts('');
+        sys.error('');
 
-        sys.print('test "' + t.__name + '" failed: ');
-        sys.puts(t.__failure.stack || t.__failure);
+        sys.error('test "' + t.__name + '" failed: ');
+        sys.error(t.__failure.stack || t.__failure);
       });
 
-    sys.puts('');
+    sys.error('');
   });
 
 var test = exports.test = function(name, func) {
@@ -119,6 +121,9 @@ var TestSuite = exports.TestSuite = function(name) {
   this.numFinishedTests = 0;
   this.finished = false;
 
+  this._setup = null;
+  this._teardown = null;
+
   var suite = this;
   process.addListener('exit', function() {
       suite.finish();
@@ -131,8 +136,9 @@ TestSuite.prototype.finish = function() {
 
   this.finished = true;
 
-  sys.puts('\nResults for ' + (this.name ? '"' + (this.name || '')+ '"' : 'unnamed suite') + ':');
+  sys.error('\nResults for ' + (this.name ? '"' + (this.name || '')+ '"' : 'unnamed suite') + ':');
   var failures = [];
+  var output = '';
   this.tests.forEach(function(t) {
       if( !t.__finished ) {
         t.finish();
@@ -140,23 +146,24 @@ TestSuite.prototype.finish = function() {
       if( t.__failure !== null ) {
         failures.push(t);
       }
-      sys.print(t.__symbol);
+      output += t.__symbol;
     });
 
-  sys.puts('');
-  sys.print(this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ');
-  sys.print(failures.length + ' failure' + (failures.length == 1 ? '' : 's') + '; ');
-  sys.print(this.numAssertions + ' assertion' + (this.numAssertions == 1 ? '' : 's') + ' ');
-  sys.puts('');
+  sys.error(output);
+
+  output = this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ';
+  output += failures.length + ' failure' + (failures.length == 1 ? '' : 's') + '; ';
+  output += this.numAssertions + ' assertion' + (this.numAssertions == 1 ? '' : 's') + ' ';
+  sys.error(output);
 
   failures.forEach(function(t) {
-      sys.puts('');
+      sys.error('');
 
-      sys.print('test "' + t.__name + '" failed: ');
-      sys.puts(t.__failure.stack || t.__failure);
+      sys.error('test "' + t.__name + '" failed: ');
+      sys.error(t.__failure.stack || t.__failure);
     });
 
-  sys.puts('');
+  sys.error('');
 };
 
 TestSuite.prototype.setup = function(func) {
@@ -164,7 +171,7 @@ TestSuite.prototype.setup = function(func) {
   return this;
 };
 TestSuite.prototype.teardown = function(func) {
-  this.teardown = func;
+  this._teardown = func;
   return this;
 };
 TestSuite.prototype.waitForTests = function(yesOrNo) {
@@ -175,7 +182,7 @@ TestSuite.prototype.waitForTests = function(yesOrNo) {
   return this;
 };
 TestSuite.prototype.runTests = function(tests) {
-  sys.puts('\n' + (this.name? '"' + (this.name || '')+ '"' : 'unnamed suite'));
+  //sys.puts('\n' + (this.name? '"' + (this.name || '')+ '"' : 'unnamed suite'));
   for( var testName in tests ) {
     var t = new Test(testName, tests[testName], this);
     this.tests.push(t);
@@ -190,15 +197,15 @@ TestSuite.prototype.runTest = function(testIndex) {
 
   var t = this.tests[testIndex];
 
-  if(typeof this._setup != 'undefined' && this._setup !== null) {
-    this._setup(t);
+  if(this._setup) {
+    this._setup.call(t,t);
   }
 
   var suite = this;
   var wait = suite.wait;
   t.__promise.addCallback(function(numAssertions) {
-      if(suite.teardown) {
-        suite.teardown.apply(t);
+      if(suite._teardown) {
+        suite.teardown.call(t,t);
       }
 
       suite.numAssertions += numAssertions;
