@@ -113,8 +113,6 @@ var test = exports.test = function(name, func) {
 
 var TestSuite = exports.TestSuite = function(name) {
   this.name = name;
-  this.setup = null;
-  this.teardown = null;
   this.wait = false;
   this.tests = [];
   this.numAssertions = 0;
@@ -162,7 +160,7 @@ TestSuite.prototype.finish = function() {
 };
 
 TestSuite.prototype.setup = function(func) {
-  this.setup = func;
+  this._setup = func;
   return this;
 };
 TestSuite.prototype.teardown = function(func) {
@@ -192,8 +190,8 @@ TestSuite.prototype.runTest = function(testIndex) {
 
   var t = this.tests[testIndex];
 
-  if(this.setup) {
-    this.setup.apply(t);
+  if(typeof this._setup != 'undefined' && this._setup !== null) {
+    this._setup(t);
   }
 
   var suite = this;

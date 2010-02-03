@@ -1,4 +1,4 @@
-var test = require('./asyncTesting').test;
+var test = require('../async_testing').test;
 
 test("this does something", function(test) {
         test.assert.ok(true);

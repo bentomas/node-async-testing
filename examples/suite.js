@@ -1,5 +1,5 @@
 var sys = require('sys');
-var TestSuite = require('./asyncTesting').TestSuite;
+var TestSuite = require('../async_testing').TestSuite;
 
 (new TestSuite('My Second Test Suite'))
   .runTests({
@@ -29,7 +29,7 @@ var TestSuite = require('./asyncTesting').TestSuite;
       },
     "this fails": function(test) {
         setTimeout(function() {
-            test.assert.ok(true);
+            test.assert.ok(false);
             test.finish();
           }, 1000);
       },
@@ -57,11 +57,11 @@ var TestSuite = require('./asyncTesting').TestSuite;
       },
   });
 
-var ts = new TestSuite("Setup");
-ts.setup = function() {
-  this.foo = 'bar';
-}
-ts.runTests({
+(new TestSuite("Setup"))
+  .setup(function(test) {
+    test.foo = 'bar';
+  })
+  .runTests({
     "foo equals bar": function(test) {
       test.assert.equal('bar', test.foo);
     }
