@@ -205,7 +205,7 @@ TestSuite.prototype.runTest = function(testIndex) {
   var wait = suite.wait;
   t.__promise.addCallback(function(numAssertions) {
       if(suite._teardown) {
-        suite.teardown.call(t,t);
+        suite._teardown.call(t,t);
       }
 
       suite.numAssertions += numAssertions;
