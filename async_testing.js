@@ -1,5 +1,6 @@
-var sys = require('sys');
-var assert = require('assert');
+var sys = require('sys'),
+    assert = require('assert'),
+    events = require('events');
 
 var AssertWrapper = exports.AssertWrapper = function(test) {
   this.__test = test;
@@ -37,14 +38,14 @@ var Test = function(name, func, suite) {
   this.__name = name;
   this.__func = func;
   this.__suite = suite;
-  this.__promise = new process.Promise();
+  this.__promise = new events.Promise();
   this.__numAssertions = 0;
   this.__finished = false;
   this.__failure = null;
   this.__symbol = '.';
 };
 Test.prototype.run = function() {
-  //sys.puts('Starting test "' + this.__name + '" ...');
+  sys.puts('Starting test "' + this.__name + '"');
   this.__func(this);
 };
 Test.prototype.finish = function() {
@@ -54,7 +55,7 @@ Test.prototype.finish = function() {
     if( this.__failure === null && this.numAssertionsExpected !== null ) {
       try {
         var message = this.numAssertionsExpected + (this.numAssertionsExpected == 1 ? ' assertion was ' : ' assertions were ')
-                    + 'expected but only ' + this.__numAssertions + ' fired';
+                    + 'expected but ' + this.__numAssertions + ' fired';
         assert.equal(this.numAssertionsExpected, this.__numAssertions, message);
       }
       catch(err) {
@@ -182,7 +183,7 @@ TestSuite.prototype.waitForTests = function(yesOrNo) {
   return this;
 };
 TestSuite.prototype.runTests = function(tests) {
-  //sys.puts('\n' + (this.name? '"' + (this.name || '')+ '"' : 'unnamed suite'));
+  sys.puts('\n' + (this.name? '"' + (this.name || '')+ '"' : 'unnamed suite'));
   for( var testName in tests ) {
     var t = new Test(testName, tests[testName], this);
     this.tests.push(t);
