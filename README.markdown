@@ -59,8 +59,9 @@ Tests are added to a TestSuite object.
         }
       });
 
-If your test isn't asynchronous, don't ask for the finised callback. Then you
-don't have to call it.
+If your test isn't asynchronous, you don't have to use the finished callback.
+If you don't list the finished callback in the parameters of the test, 
+node-async-testing will assume the test is synchronous.
 
     var suite = new TestSuite();
     suite.addTests({
@@ -70,7 +71,7 @@ don't have to call it.
       });
 
 You can add a setup function that is ran once at the beginning of each test.
-You can also add a teardown function:
+You do a teardown function, as well:
 
     var suite = new TestSuite();
     suite.setup(function() {
@@ -106,11 +107,11 @@ your tests receive a third argument which has this information:
 
 If you want to be explicit about the number of assertions run in a given test,
 you can set `numAssertionsExpected` on the test. This can be helpful in
-asynchronous tests where you want to be sure all callback get fired.
+asynchronous tests where you want to be sure all callbacks get fired.
 
     var suite = new TestSuite();
     suite.addTests({
-        "assertions expected": function(assert) {
+        "assertions expected (fails)": function(assert) {
           this.numAssertionsExpected = 3;
 
           assert.ok(true);
@@ -125,12 +126,12 @@ for the uncaughtException event on the test:
     suite.addTests({
         "uncaughtException listener": function(assert, finished, test) {
           test.numAssertionsExpected = 1;
-          test.addListener('uncaughtException', function() {
-              assert.ok(true);
+          test.addListener('uncaughtException', function(err) {
+              assert.equal('hello', err.message);
               finished();
             });
 
-          throw new Error();
+          throw new Error('hello');
         }
       });
 
@@ -173,7 +174,7 @@ There is also a test runner which can run many TestSuites at once:
 
 It is recommended that you export your test suites, so other more capable
 scripts can handle running them. However, it is still convenient to be able to
-run a file.  Here's how you can allow both:
+run a specific file.  Here's how you can allow both:
 
     exports['first suite'] = new TestSuite();
     exports['second suite'] = new TestSuite();
@@ -183,7 +184,7 @@ run a file.  Here's how you can allow both:
     }
 
 This way the tests will only be run automatically if the file containing them is
-the base script being ran.
+the script being ran.
 
 node-async-testing also comes with a script that will run all test files in a 
 specified directory. A test file is one that matches this regular expression:

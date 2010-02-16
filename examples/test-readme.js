@@ -26,7 +26,7 @@ exports['README examples suite'] = (new TestSuite())
         finished();
       });
     },
-    "assertions expected": function(assert) {
+    "assertions expected (fails)": function(assert) {
       this.numAssertionsExpected = 3;
 
       assert.ok(true);
@@ -34,12 +34,12 @@ exports['README examples suite'] = (new TestSuite())
     },
     "uncaughtException listener": function(assert, finished, test) {
       test.numAssertionsExpected = 1;
-      test.addListener('uncaughtException', function() {
-          assert.ok(true);
+      test.addListener('uncaughtException', function(err) {
+          assert.equal('hello', err.message);
           finished();
         });
 
-      throw new Error();
+      throw new Error('hello');
     }
   });
 
