@@ -1,0 +1,72 @@
+#! /usr/bin/env node
+
+var sys = require('sys'),
+    path = require('path'),
+    fs = require('fs');
+
+try {
+  var runSuites = require('./async_testing').runSuites;
+}
+catch(err) {
+  sys.puts(err.message);
+}
+
+if( process.ARGV.length < 3 ) {
+  var paths_to_check = [process.cwd()];
+}
+else {
+  var paths_to_check = [];
+  process.ARGV.slice(2).forEach(function(dir) {
+    if( dir.charAt(0) === '/' ) {
+      paths_to_check.push(dir);
+    }
+    else {
+      paths_to_check.push(path.join(process.cwd(),dir));
+    }
+  });
+}
+
+var testFiles = [];
+
+while(paths_to_check.length > 0) {
+  var cur_path = paths_to_check.shift();
+  var dir = fs.readdir(cur_path).wait();
+  dir.forEach(function(file_name) {
+      var stat = fs.stat(path.join(cur_path, file_name)).wait();
+      if( stat.isFile() ) {
+        if( !file_name.match(/^test-.*\.js$/) ) {
+          return;
+        }
+        testFiles.push(path.join(cur_path, file_name));
+      }
+      else if( stat.isDirectory() ) {
+        paths_to_check.push(path.join(cur_path, file_name));
+      }
+    });
+}
+
+var stats = {
+  numSuites: 0,
+  numFailed: 0
+};
+
+runNextFile(stats);
+
+function runNextFile(sts) {
+  stats.numSuites += sts.numSuites;
+  stats.numFailed += sts.numFailed;
+
+  if( testFiles.length < 1 ) {
+    var output = '' + (stats.numSuites == 1 ? '1 suite' : stats.numSuites+' suites') + ' ran';
+    if( stats.numFailed > 0 ) {
+      output += ': ' + stats.numFailed + ' had failures';
+    }
+    sys.error(output);
+    return;
+  }
+  var file = testFiles.shift();
+  file = file.substr(0, file.length-3);
+  var suites = require(file);
+
+  runSuites(suites, runNextFile);
+}

@@ -1,7 +1,7 @@
 var sys = require('sys');
 var TestSuite = require('../async_testing').TestSuite;
 
-exports['First'] = new TestSuite()
+exports['First Suite'] = new TestSuite()
   .addTests({
     "this does something": function(assert) {
         assert.ok(true);
@@ -19,7 +19,7 @@ exports['First'] = new TestSuite()
       },
   });
 
-exports['Second'] = new TestSuite()
+exports['Second Suite'] = new TestSuite()
   .addTests({
     "this does something": function(assert) {
         assert.ok(true);
@@ -59,7 +59,7 @@ exports['Second'] = new TestSuite()
       },
   });
 
-exports['Setup'] = (new TestSuite())
+exports['Setup Suite'] = (new TestSuite())
   .setup(function() {
     this.foo = 'bar';
   })
@@ -72,8 +72,8 @@ exports['Setup'] = (new TestSuite())
   });
 
 var count = 0;
-exports.Wait = new TestSuite();
-exports.Wait.addTests({
+exports['Wait Suite'] = new TestSuite();
+exports['Wait Suite'].addTests({
     "count equal 0": function(assert, finished) {
       assert.equal(0, count);
       setTimeout(function() {

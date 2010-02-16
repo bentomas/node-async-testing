@@ -166,8 +166,15 @@ run a file.  Here's how you can allow both:
       require('../async_testing').runSuites(exports);
     }
 
-This way the tests will only be run if the file containing them is the base
-script being ran.
+This way the tests will only be run automatically if the file containing them is
+the base script being ran.
+
+node-async-testing also comes with a script that will run all test files in a 
+specified directory. A test file is one that matches this regular expression:
+`/^test-.*\.js$/`. To use the script make sure node-async-testing has been 
+installed properly and then run:
+
+    node-async-test testsDir
 
 Installing
 ----------

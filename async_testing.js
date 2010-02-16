@@ -45,7 +45,7 @@ var Test = function(name, func, suite) {
   this.__symbol = '.';
 };
 Test.prototype.run = function() {
-  sys.puts('Starting test "' + this.__name + '"');
+  sys.puts('  Starting test "' + this.__name + '"');
   var self = this;
 
   try {
@@ -79,6 +79,28 @@ Test.prototype.finish = function() {
     this.__promise.emitSuccess(this.__numAssertions);
   }
 };
+Test.prototype.failureString = function() {
+  var output = '';
+
+  if( this.__symbol == 'F' ) {
+    output += '  test "' + this.__name + '" failed: \n';
+  }
+  else {
+    output += '  test "' + this.__name + '" threw an error: \n';
+  }
+
+  if( this.__failure.stack ) {
+    this.__failure.stack.split("\n").forEach(function(line) {
+        output += '  ' + line + '\n';
+      });
+    
+  }
+  else {
+    output = ''+this.__failure;
+  }
+
+  return output;
+};
 Test.prototype.failed = function(err) {
   if( !this.__finished ) {
     this.__failure = err;
@@ -98,6 +120,7 @@ var TestSuite = exports.TestSuite = function(name) {
   this.tests = [];
   this.numAssertions = 0;
   this.numFinishedTests = 0;
+  this.numFailedTests = 0;
   this.finished = false;
   this.promise = new events.Promise();
 
@@ -110,6 +133,10 @@ var TestSuite = exports.TestSuite = function(name) {
         suite.finish();
       }
     });
+
+  // I'm having trouble doing instance of tests to see if something
+  // is a test suite, so i'll add a property nothing is likely to have
+  this.nodeAsyncTesting = 42;
 };
 TestSuite.prototype.finish = function() {
   if( this.finished ) {
@@ -118,37 +145,32 @@ TestSuite.prototype.finish = function() {
 
   this.finished = true;
 
-  sys.error('\nResults for ' + (this.name ? '"' + (this.name || '')+ '"' : 'unnamed suite') + ':');
   var failures = [];
-  var output = '';
+  var output = '  ';
   this.tests.forEach(function(t) {
       if( !t.__finished ) {
         t.finish();
       }
       if( t.__failure !== null ) {
+        this.numFailedTests++;
         failures.push(t);
       }
       output += t.__symbol;
+    },this);
+
+  sys.error('');
+  failures.forEach(function(t) {
+      sys.error(t.failureString());
     });
 
+  sys.error('  Results for ' + (this.name ? '"' + (this.name || '')+ '"' : 'unnamed suite') + ':');
   sys.error(output);
 
-  output = this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ';
+  output = '  ';
+  output += this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ';
   output += failures.length + ' failure' + (failures.length == 1 ? '' : 's') + '; ';
   output += this.numAssertions + ' assertion' + (this.numAssertions == 1 ? '' : 's') + ' ';
   sys.error(output);
-
-  failures.forEach(function(t) {
-      sys.error('');
-
-      if( t.__symbol == 'F' ) {
-        sys.error('test "' + t.__name + '" failed: ');
-      }
-      else {
-        sys.error('test "' + t.__name + '" threw an error: ');
-      }
-      sys.error(t.__failure.stack || t.__failure);
-    });
 
   sys.error('');
 
@@ -236,25 +258,35 @@ TestSuite.prototype.runTest = function(testIndex) {
 
 };
 
-exports.runSuites = function(module) {
+exports.runSuites = function(module, callback) {
   var suites = [];
+
   for( var suiteName in module ) {
     var suite = module[suiteName];
 
-    if( suite instanceof TestSuite ) {
+    if(suite.nodeAsyncTesting == 42) {
       suite.name = suiteName;
       suites.push(suite);
     }
   }
 
+  var stats = {
+    numSuites: 0,
+    numFailed: 0
+  };
+
   function runNextSuite() {
     if( suites.length < 1 ) {
-      return;
+      return callback ? callback(stats) : null;
     }
     var suite = suites.shift();
-    sys.puts('Running ' + suite.name);
+    sys.puts('Running "' + suite.name + '"');
     suite.runTests();
     suite.promise.addCallback(function() {
+        stats.numSuites++;
+        if( suite.numFailedTests > 0 ) {
+          stats.numFailed++;
+        }
         runNextSuite();
       });
   }
