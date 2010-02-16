@@ -3,7 +3,7 @@ var sys = require('sys'),
     events = require('events');
 
 var AssertWrapper = exports.AssertWrapper = function(test) {
-  this.__test = test;
+  var test = this.__test = test;
   var assertion_functions = [
     'ok',
     'equal',
@@ -20,11 +20,11 @@ var AssertWrapper = exports.AssertWrapper = function(test) {
     this[func_name] = function() {
         try {
           assert[func_name].apply(null, arguments);
-          this.__test.__numAssertions++;
+          test.__numAssertions++;
         }
         catch(err) {
           if( err instanceof assert.AssertionError ) {
-            this.__test.failed(err);
+            test.failed(err);
           }
         }
       }
@@ -46,7 +46,19 @@ var Test = function(name, func, suite) {
 };
 Test.prototype.run = function() {
   sys.puts('Starting test "' + this.__name + '"');
-  this.__func(this);
+  var self = this;
+
+  try {
+    this.__func(this.assert, function() { self.finish() }, this);
+  }
+  catch(err) {
+    this.failed(err);
+  }
+
+  // they didn't ask for the finish function so assume it is synchronous
+  if( this.__func.length < 2 ) {
+    this.finish();
+  }
 };
 Test.prototype.finish = function() {
   if( !this.__finished ) {
@@ -70,64 +82,33 @@ Test.prototype.finish = function() {
 Test.prototype.failed = function(err) {
   if( !this.__finished ) {
     this.__failure = err;
-    this.__symbol = 'F';
+    if( err instanceof assert.AssertionError ) {
+      this.__symbol = 'F';
+    }
+    else {
+      this.__symbol = 'E';
+    }
     this.finish();
   }
 };
 
-var tests = [];
-process.addListener('exit', function() {
-    if( tests.length < 1 ) {
-      return;
-    }
-
-    var failures = [];
-    sys.error('\nResults:');
-
-    var output = '';
-    tests.forEach(function(t) {
-        if( !t.__finished ) {
-          t.finish();
-        }
-        if( t.__failure !== null ) {
-          failures.push(t);
-        }
-
-        output += t.__symbol;
-      });
-
-    sys.error(output);
-    failures.forEach(function(t) {
-        sys.error('');
-
-        sys.error('test "' + t.__name + '" failed: ');
-        sys.error(t.__failure.stack || t.__failure);
-      });
-
-    sys.error('');
-  });
-
-var test = exports.test = function(name, func) {
-  var t = new Test(name, func);
-  tests.push(t);
-
-  t.run();
-};
-
 var TestSuite = exports.TestSuite = function(name) {
   this.name = name;
-  this.wait = false;
+  this.wait = true;
   this.tests = [];
   this.numAssertions = 0;
   this.numFinishedTests = 0;
   this.finished = false;
+  this.promise = new events.Promise();
 
   this._setup = null;
   this._teardown = null;
 
   var suite = this;
   process.addListener('exit', function() {
-      suite.finish();
+      if( !suite.wait ) {
+        suite.finish();
+      }
     });
 };
 TestSuite.prototype.finish = function() {
@@ -160,11 +141,18 @@ TestSuite.prototype.finish = function() {
   failures.forEach(function(t) {
       sys.error('');
 
-      sys.error('test "' + t.__name + '" failed: ');
+      if( t.__symbol == 'F' ) {
+        sys.error('test "' + t.__name + '" failed: ');
+      }
+      else {
+        sys.error('test "' + t.__name + '" threw an error: ');
+      }
       sys.error(t.__failure.stack || t.__failure);
     });
 
   sys.error('');
+
+  this.promise.emitSuccess();
 };
 
 TestSuite.prototype.setup = function(func) {
@@ -182,13 +170,15 @@ TestSuite.prototype.waitForTests = function(yesOrNo) {
   this.wait = yesOrNo;
   return this;
 };
-TestSuite.prototype.runTests = function(tests) {
-  sys.puts('\n' + (this.name? '"' + (this.name || '')+ '"' : 'unnamed suite'));
+TestSuite.prototype.addTests = function(tests) {
   for( var testName in tests ) {
     var t = new Test(testName, tests[testName], this);
     this.tests.push(t);
   };
 
+  return this;
+};
+TestSuite.prototype.runTests = function() {
   this.runTest(0);
 };
 TestSuite.prototype.runTest = function(testIndex) {
@@ -204,6 +194,21 @@ TestSuite.prototype.runTest = function(testIndex) {
 
   var suite = this;
   var wait = suite.wait;
+
+  if(wait) {
+    // if we are waiting then let's assume we are only running one test at 
+    // a time, so we can catch all errors
+    var errorListener = function(err) {
+      t.failed(err);
+    };
+    process.addListener('uncaughtException', errorListener);
+
+    var exitListener = function() {
+      sys.error("\n\nOoops! The process excited in the middle of the test '" + t.__name + "'\nDid you forget to finish it?\n");
+    };
+    process.addListener('exit', exitListener);
+  }
+
   t.__promise.addCallback(function(numAssertions) {
       if(suite._teardown) {
         suite._teardown.call(t,t);
@@ -213,6 +218,8 @@ TestSuite.prototype.runTest = function(testIndex) {
       suite.numFinishedTests++;
 
       if( wait ) {
+        process.removeListener('uncaughtException', errorListener);
+        process.removeListener('exit', exitListener);
         suite.runTest(testIndex+1);
       }
 
@@ -227,4 +234,30 @@ TestSuite.prototype.runTest = function(testIndex) {
     suite.runTest(testIndex+1);
   }
 
+};
+
+exports.runSuites = function(module) {
+  var suites = [];
+  for( var suiteName in module ) {
+    var suite = module[suiteName];
+
+    if( suite instanceof TestSuite ) {
+      suite.name = suiteName;
+      suites.push(suite);
+    }
+  }
+
+  function runNextSuite() {
+    if( suites.length < 1 ) {
+      return;
+    }
+    var suite = suites.shift();
+    sys.puts('Running ' + suite.name);
+    suite.runTests();
+    suite.promise.addCallback(function() {
+        runNextSuite();
+      });
+  }
+
+  runNextSuite();
 };
