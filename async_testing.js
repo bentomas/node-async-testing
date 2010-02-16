@@ -32,6 +32,8 @@ var AssertWrapper = exports.AssertWrapper = function(test) {
 };
 
 var Test = function(name, func, suite) {
+  events.EventEmitter.call(this);
+
   this.assert = new AssertWrapper(this);
   this.numAssertionsExpected = null;
 
@@ -44,16 +46,12 @@ var Test = function(name, func, suite) {
   this.__failure = null;
   this.__symbol = '.';
 };
+sys.inherits(Test, events.EventEmitter);
 Test.prototype.run = function() {
-  sys.puts('  Starting test "' + this.__name + '"');
+  sys.error('  Starting test "' + this.__name + '"');
   var self = this;
 
-  try {
-    this.__func(this.assert, function() { self.finish() }, this);
-  }
-  catch(err) {
-    this.failed(err);
-  }
+  this.__func(this.assert, function() { self.finish() }, this);
 
   // they didn't ask for the finish function so assume it is synchronous
   if( this.__func.length < 2 ) {
@@ -221,7 +219,12 @@ TestSuite.prototype.runTest = function(testIndex) {
     // if we are waiting then let's assume we are only running one test at 
     // a time, so we can catch all errors
     var errorListener = function(err) {
-      t.failed(err);
+      if( t.listeners('uncaughtException').length > 0 ) {
+        t.emit('uncaughtException',err);
+      }
+      else {
+        t.failed(err);
+      }
     };
     process.addListener('uncaughtException', errorListener);
 
@@ -255,7 +258,6 @@ TestSuite.prototype.runTest = function(testIndex) {
   if( !wait ) {
     suite.runTest(testIndex+1);
   }
-
 };
 
 exports.runSuites = function(module, callback) {
@@ -264,7 +266,7 @@ exports.runSuites = function(module, callback) {
   for( var suiteName in module ) {
     var suite = module[suiteName];
 
-    if(suite.nodeAsyncTesting == 42) {
+    if(suite && suite.nodeAsyncTesting == 42) {
       suite.name = suiteName;
       suites.push(suite);
     }

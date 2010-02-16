@@ -118,6 +118,22 @@ asynchronous tests where you want to be sure all callback get fired.
         }
       });
 
+If you need to make assertions about what kind of errors are thrown, you can listen
+for the uncaughtException event on the test:
+
+    var suite = new TestSuite();
+    suite.addTests({
+        "uncaughtException listener": function(assert, finished, test) {
+          test.numAssertionsExpected = 1;
+          test.addListener('uncaughtException', function() {
+              assert.ok(true);
+              finished();
+            });
+
+          throw new Error();
+        }
+      });
+
 All the functions to a TestSuite can be chained to cut down on verbosity:
 
     (new TestSuite())

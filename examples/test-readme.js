@@ -31,6 +31,15 @@ exports['README examples suite'] = (new TestSuite())
 
       assert.ok(true);
       // this test will fail!
+    },
+    "uncaughtException listener": function(assert, finished, test) {
+      test.numAssertionsExpected = 1;
+      test.addListener('uncaughtException', function() {
+          assert.ok(true);
+          finished();
+        });
+
+      throw new Error();
     }
   });
 
