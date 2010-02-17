@@ -52,11 +52,11 @@ function runNextFile(sts) {
   if( sts ) {
     stats.numSuites += sts.numSuites;
     stats.numFailed += sts.numFailed;
-    sys.error('----------------------------------\n');
+    sys.error('----------------------------------');
   }
 
   if( testFiles.length < 1 ) {
-    var output = '' + (stats.numSuites == 1 ? '1 suite' : stats.numSuites+' suites') + ' ran';
+    var output = '\n' + (stats.numSuites == 1 ? '1 suite' : stats.numSuites+' suites') + ' ran';
     if( stats.numFailed > 0 ) {
       output += ': ' + stats.numFailed + ' had failures';
     }

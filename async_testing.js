@@ -293,5 +293,6 @@ exports.runSuites = function(module, callback) {
       });
   }
 
+  sys.puts('');
   runNextSuite();
 };
