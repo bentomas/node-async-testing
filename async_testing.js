@@ -50,7 +50,17 @@ sys.inherits(Test, events.EventEmitter);
 Test.prototype.run = function() {
   var self = this;
 
-  this.__func(this.assert, function() { self.finish() }, this);
+  try {
+    this.__func(this.assert, function() { self.finish() }, this);
+  }
+  catch(err) {
+    if( this.listeners('uncaughtException').length > 0 ) {
+      this.emit('uncaughtException',err);
+    }
+    else {
+      this.failed(err);
+    }
+  }
 
   // they didn't ask for the finish function so assume it is synchronous
   if( this.__func.length < 2 ) {
