@@ -4,12 +4,7 @@ var sys = require('sys'),
     path = require('path'),
     fs = require('fs');
 
-try {
-  var runSuites = require('./async_testing').runSuites;
-}
-catch(err) {
-  sys.puts(err.message);
-}
+var runSuites = require('async_testing').runSuites;
 
 if( process.ARGV.length < 3 ) {
   var paths_to_check = [process.cwd()];
@@ -50,11 +45,15 @@ var stats = {
   numFailed: 0
 };
 
-runNextFile(stats);
+runNextFile();
 
 function runNextFile(sts) {
-  stats.numSuites += sts.numSuites;
-  stats.numFailed += sts.numFailed;
+
+  if( sts ) {
+    stats.numSuites += sts.numSuites;
+    stats.numFailed += sts.numFailed;
+    sys.error('----------------------------------\n');
+  }
 
   if( testFiles.length < 1 ) {
     var output = '' + (stats.numSuites == 1 ? '1 suite' : stats.numSuites+' suites') + ' ran';

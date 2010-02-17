@@ -48,7 +48,6 @@ var Test = function(name, func, suite) {
 };
 sys.inherits(Test, events.EventEmitter);
 Test.prototype.run = function() {
-  sys.error('  Starting test "' + this.__name + '"');
   var self = this;
 
   this.__func(this.assert, function() { self.finish() }, this);
@@ -94,7 +93,7 @@ Test.prototype.failureString = function() {
     
   }
   else {
-    output = ''+this.__failure;
+    output += '  '+this.__failure;
   }
 
   return output;
@@ -144,7 +143,6 @@ TestSuite.prototype.finish = function() {
   this.finished = true;
 
   var failures = [];
-  var output = '  ';
   this.tests.forEach(function(t) {
       if( !t.__finished ) {
         t.finish();
@@ -153,24 +151,19 @@ TestSuite.prototype.finish = function() {
         this.numFailedTests++;
         failures.push(t);
       }
-      output += t.__symbol;
     },this);
 
-  sys.error('');
-  failures.forEach(function(t) {
-      sys.error(t.failureString());
-    });
 
-  sys.error('  Results for ' + (this.name ? '"' + (this.name || '')+ '"' : 'unnamed suite') + ':');
-  sys.error(output);
-
-  output = '  ';
+  output = '\n';
   output += this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ';
   output += failures.length + ' failure' + (failures.length == 1 ? '' : 's') + '; ';
   output += this.numAssertions + ' assertion' + (this.numAssertions == 1 ? '' : 's') + ' ';
   sys.error(output);
 
   sys.error('');
+  failures.forEach(function(t) {
+      sys.error(t.failureString());
+    });
 
   this.promise.emitSuccess();
 };
@@ -199,6 +192,7 @@ TestSuite.prototype.addTests = function(tests) {
   return this;
 };
 TestSuite.prototype.runTests = function() {
+  sys.puts('Running "' + this.name + '"');
   this.runTest(0);
 };
 TestSuite.prototype.runTest = function(testIndex) {
@@ -233,6 +227,9 @@ TestSuite.prototype.runTest = function(testIndex) {
     };
     process.addListener('exit', exitListener);
   }
+  else {
+    sys.error('  Starting test "' + this.__name + '"');
+  }
 
   t.__promise.addCallback(function(numAssertions) {
       if(suite._teardown) {
@@ -243,6 +240,7 @@ TestSuite.prototype.runTest = function(testIndex) {
       suite.numFinishedTests++;
 
       if( wait ) {
+        process.stdio.writeError(t.__symbol);
         process.removeListener('uncaughtException', errorListener);
         process.removeListener('exit', exitListener);
         suite.runTest(testIndex+1);
@@ -282,9 +280,11 @@ exports.runSuites = function(module, callback) {
       return callback ? callback(stats) : null;
     }
     var suite = suites.shift();
-    sys.puts('Running "' + suite.name + '"');
     suite.runTests();
     suite.promise.addCallback(function() {
+        if( suites.length > 0 ) {
+          sys.error('----------------------------------\n');
+        }
         stats.numSuites++;
         if( suite.numFailedTests > 0 ) {
           stats.numFailed++;

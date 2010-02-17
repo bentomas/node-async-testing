@@ -17,9 +17,9 @@ Some goals of the project:
 + Not another Behavior Driven Development testing framework. I don't
   like specifications and what not. They only add verbosity. 
   
-      test('X does Y',function() {
-        //test goes here
-      });
+    test('X does Y',function() {
+      //test goes here
+    });
 
   is good enough for me.
 + Make no assumptions about the code being tested.
@@ -71,7 +71,7 @@ node-async-testing will assume the test is synchronous.
       });
 
 You can add a setup function that is ran once at the beginning of each test.
-You do a teardown function, as well:
+You can do a teardown function, as well:
 
     var suite = new TestSuite();
     suite.setup(function() {
