@@ -1,18 +1,25 @@
 var TestSuite = require('../async_testing').TestSuite;
 
 exports['README examples suite'] = (new TestSuite())
-  .setup(function() {
+  .setup(function(callback) {
     this.foo = 'bar';
+    process.nextTick(function() {
+        callback();
+      });
   })
-  .teardown(function() {
+  .teardown(function(callback) {
     this.foo = null;
+
+    process.nextTick(function() {
+        callback();
+      });
   })
   .addTests({
     "simple asynchronous": function(assert, finished) {
       setTimeout(function() {
         assert.ok(true);
         finished();
-      });
+      },50);
     },
     "simple synchronous": function(assert) {
       assert.ok(true);

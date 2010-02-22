@@ -38,20 +38,23 @@ var Test = function(name, func, suite) {
   this.numAssertionsExpected = null;
 
   this.__name = name;
+  this.__phase = 'setup';
   this.__func = func;
   this.__suite = suite;
-  this.__promise = new events.Promise();
+  this.__finishedCallback = null;
   this.__numAssertions = 0;
   this.__finished = false;
   this.__failure = null;
   this.__symbol = '.';
 };
 sys.inherits(Test, events.EventEmitter);
+
 Test.prototype.run = function() {
   var self = this;
 
   try {
-    this.__func(this.assert, function() { self.finish() }, this);
+    this.__phase = 'test';
+    this.__func(this.assert, function() { self.__phase = 'teardown'; self.finish(); }, this);
   }
   catch(err) {
     if( this.listeners('uncaughtException').length > 0 ) {
@@ -64,6 +67,7 @@ Test.prototype.run = function() {
 
   // they didn't ask for the finish function so assume it is synchronous
   if( this.__func.length < 2 ) {
+    this.__phase = 'teardown';
     this.finish();
   }
 };
@@ -83,7 +87,9 @@ Test.prototype.finish = function() {
       }
     }
 
-    this.__promise.emitSuccess(this.__numAssertions);
+    if( this.__finishedCallback ) {
+      this.__finishedCallback(this.__numAssertions);
+    }
   }
 };
 Test.prototype.failureString = function() {
@@ -93,7 +99,11 @@ Test.prototype.failureString = function() {
     output += '  test "' + this.__name + '" failed: \n';
   }
   else {
-    output += '  test "' + this.__name + '" threw an error: \n';
+    output += '  test "' + this.__name + '" threw an error';
+    if( this.__phase !== 'test' ) {
+      output += ' during ' + this.__phase;
+    }
+    output += ': \n';
   }
 
   if( this.__failure.stack ) {
@@ -109,14 +119,15 @@ Test.prototype.failureString = function() {
   return output;
 };
 Test.prototype.failed = function(err) {
+  this.__failure = err;
+  if( err instanceof assert.AssertionError ) {
+    this.__symbol = 'F';
+  }
+  else {
+    this.__symbol = 'E';
+  }
+
   if( !this.__finished ) {
-    this.__failure = err;
-    if( err instanceof assert.AssertionError ) {
-      this.__symbol = 'F';
-    }
-    else {
-      this.__symbol = 'E';
-    }
     this.finish();
   }
 };
@@ -129,7 +140,7 @@ var TestSuite = exports.TestSuite = function(name) {
   this.numFinishedTests = 0;
   this.numFailedTests = 0;
   this.finished = false;
-  this.promise = new events.Promise();
+  this.callback = null;
 
   this._setup = null;
   this._teardown = null;
@@ -175,7 +186,9 @@ TestSuite.prototype.finish = function() {
       sys.error(t.failureString());
     });
 
-  this.promise.emitSuccess();
+  if( this.callback ) {
+    this.callback();
+  }
 };
 
 TestSuite.prototype.setup = function(func) {
@@ -201,8 +214,11 @@ TestSuite.prototype.addTests = function(tests) {
 
   return this;
 };
-TestSuite.prototype.runTests = function() {
-  sys.puts('Running "' + this.name + '"');
+TestSuite.prototype.runTests = function(callback) {
+  if( callback ) {
+    this.callback = callback;
+  }
+  sys.error('Running "' + this.name + '"');
   this.runTest(0);
 };
 TestSuite.prototype.runTest = function(testIndex) {
@@ -211,12 +227,9 @@ TestSuite.prototype.runTest = function(testIndex) {
   }
 
   var t = this.tests[testIndex];
-
-  if(this._setup) {
-    this._setup.call(t,t);
-  }
-
+  t.__finishedCallback = finishedCallback;
   var suite = this;
+
   var wait = suite.wait;
 
   if(wait) {
@@ -241,11 +254,34 @@ TestSuite.prototype.runTest = function(testIndex) {
     sys.error('  Starting test "' + this.__name + '"');
   }
 
-  t.__promise.addCallback(function(numAssertions) {
-      if(suite._teardown) {
-        suite._teardown.call(t,t);
+  try {
+    if(this._setup) {
+      if( this._setup.length == 0 ) {
+        this._setup.call(t);
+        afterSetup();
       }
+      else {
+        this._setup.call(t, afterSetup, t);
+      }
+    }
+    else {
+      afterSetup();
+    }
+  }
+  catch(err) {
+    t.failed(err);
+  }
 
+  function afterSetup() {
+    t.run();
+
+    if( !wait ) {
+      suite.runTest(testIndex+1);
+    }
+  }
+
+  function finishedCallback(numAssertions) {
+    var teardownCallback = function() {
       suite.numAssertions += numAssertions;
       suite.numFinishedTests++;
 
@@ -259,12 +295,26 @@ TestSuite.prototype.runTest = function(testIndex) {
       if( suite.numFinishedTests == suite.tests.length ) {
         suite.finish();
       }
-    });
+    }
 
-  t.run();
-
-  if( !wait ) {
-    suite.runTest(testIndex+1);
+    try {
+      if(suite._teardown) {
+        if( suite._teardown.length == 0 ) {
+          suite._teardown.call(t);
+          teardownCallback();
+        }
+        else {
+          suite._teardown.call(t, teardownCallback, t);
+        }
+      }
+      else {
+        teardownCallback();
+      }
+    }
+    catch(err) {
+      t.failed(err);
+      teardownCallback();
+    }
   }
 };
 
@@ -290,8 +340,7 @@ exports.runSuites = function(module, callback) {
       return callback ? callback(stats) : null;
     }
     var suite = suites.shift();
-    suite.runTests();
-    suite.promise.addCallback(function() {
+    suite.runTests(function() {
         if( suites.length > 0 ) {
           sys.error('----------------------------------\n');
         }

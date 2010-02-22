@@ -11,7 +11,7 @@ exports['First Suite'] = new TestSuite()
         setTimeout(function() {
             assert.ok(true);
             finished();
-          }, 1000);
+          }, 300);
       },
     "this does something else": function(assert) {
         assert.ok(true);
@@ -28,7 +28,7 @@ exports['Second Suite'] = new TestSuite()
         setTimeout(function() {
             assert.ok(false);
             finished();
-          }, 1000);
+          }, 300);
       },
     "this does something else": function(assert) {
         assert.ok(true);
@@ -79,7 +79,7 @@ exports['Wait Suite'].addTests({
       setTimeout(function() {
         count++;
         finished();
-        }, 50);
+        }, 300);
     },
     "count equal 1": function(assert) {
       assert.equal(1, count);
