@@ -54,7 +54,7 @@ Test.prototype.run = function() {
 
   try {
     this.__phase = 'test';
-    this.__func(this.assert, function() { self.__phase = 'teardown'; self.finish(); }, this);
+    this.__func(this.assert, function() { self.finish(); }, this);
   }
   catch(err) {
     if( this.listeners('uncaughtException').length > 0 ) {
@@ -67,7 +67,6 @@ Test.prototype.run = function() {
 
   // they didn't ask for the finish function so assume it is synchronous
   if( this.__func.length < 2 ) {
-    this.__phase = 'teardown';
     this.finish();
   }
 };
@@ -299,6 +298,7 @@ TestSuite.prototype.runTest = function(testIndex) {
 
     try {
       if(suite._teardown) {
+        t.__phase = 'teardown';
         if( suite._teardown.length == 0 ) {
           suite._teardown.call(t);
           teardownCallback();
