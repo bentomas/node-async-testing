@@ -245,7 +245,7 @@ TestSuite.prototype.runTest = function(testIndex) {
     process.addListener('uncaughtException', errorListener);
 
     var exitListener = function() {
-      sys.error("\n\nOoops! The process excited in the middle of the test '" + t.__name + "'\nDid you forget to finish it?\n");
+      sys.error("\n\nOoops! The process exited in the middle of the test '" + t.__name + "'\nDid you forget to finish it?\n");
     };
     process.addListener('exit', exitListener);
   }
