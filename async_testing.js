@@ -285,7 +285,7 @@ TestSuite.prototype.runTest = function(testIndex) {
       suite.numFinishedTests++;
 
       if( wait ) {
-        process.stdio.writeError(t.__symbol);
+        process.binding('stdio').writeError(t.__symbol);
         process.removeListener('uncaughtException', errorListener);
         process.removeListener('exit', exitListener);
         suite.runTest(testIndex+1);
