@@ -1,6 +1,9 @@
 var sys = require('sys'),
     assert = require('assert'),
-    events = require('events');
+    events = require('events'),
+    fs = require('fs'),
+    path = require('path');
+
 
 var AssertWrapper = exports.AssertWrapper = function(test) {
   var test = this.__test = test;
@@ -352,6 +355,70 @@ exports.runSuites = function(module, callback) {
       });
   }
 
-  sys.puts('');
+  sys.error('');
   runNextSuite();
 };
+
+exports.runSuitesInPaths = function(paths) {
+  var testFiles = [];
+  var stats = {
+    numSuites: 0,
+    numFailed: 0
+  };
+
+  loadNextPath();
+
+  function loadNextPath() {
+    if( paths.length == 0 ) {
+      return runNextFile();
+    }
+
+    var cur_path = paths.shift();
+
+    fs.readdir(cur_path, function (error, dir) {
+        if(error) {
+          throw error;
+        }
+        dir.forEach(function(file_name) {
+            if( file_name.charAt(0) == '.' ) {
+              // ignore 'hidden' files and folders
+              return;
+            }
+            var stat = fs.statSync(path.join(cur_path, file_name));
+            if( stat.isFile() ) {
+              if( !file_name.match(/^test-.*\.js$/) ) {
+                return;
+              }
+              testFiles.push(path.join(cur_path, file_name));
+            }
+            else if( stat.isDirectory() ) {
+              paths.push(path.join(cur_path, file_name));
+            }
+          });
+        loadNextPath();
+      });
+  }
+
+  function runNextFile(sts) {
+    if( sts ) {
+      stats.numSuites += sts.numSuites;
+      stats.numFailed += sts.numFailed;
+      sys.error('----------------------------------');
+    }
+
+    if( testFiles.length < 1 ) {
+      var output = '\n' + (stats.numSuites == 1 ? '1 suite' : stats.numSuites+' suites') + ' ran';
+      if( stats.numFailed > 0 ) {
+        output += ': ' + stats.numFailed + ' had failures';
+      }
+      sys.error(output);
+      return;
+    }
+    var file = testFiles.shift();
+    file = file.substr(0, file.length-3);
+    var suites = require(file);
+
+    exports.runSuites(suites, runNextFile);
+  }
+};
+
