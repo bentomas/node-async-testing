@@ -1,10 +1,9 @@
-var sys = require('sys'),
-    assert = require('assert'),
-    events = require('events');
+var sys = require('sys');
 
-var AssertWrapper = exports.AssertWrapper = function(test) {
-  var test = this.__test = test;
-  var assertion_functions = [
+var assert = require('assert');
+
+function wrapAssert(test) {
+  var assertionFunctions = [
     'ok',
     'equal',
     'notEqual',
@@ -16,342 +15,271 @@ var AssertWrapper = exports.AssertWrapper = function(test) {
     'doesNotThrow'
     ];
 
-  assertion_functions.forEach(function(func_name) {
-    this[func_name] = function() {
+  var assertWrapper = {};
+
+  assertionFunctions.forEach(function(funcName) {
+    assertWrapper[funcName] = function() {
         try {
-          assert[func_name].apply(null, arguments);
-          test.__numAssertions++;
+          assert[funcName].apply(null, arguments);
+          test.numAssertions++;
         }
         catch(err) {
           if( err instanceof assert.AssertionError ) {
-            test.failed(err);
+            test.finish(err);
+
+            // we need to continue to throw an error otherwise the rest
+            // of the test will keep running.  A test should stop running as
+            // soon as it fails
+            err.ALREADY_HANDLED = true;
+            throw err;
           }
         }
       }
-    }, this);
-};
-
-var Test = function(name, func, suite) {
-  events.EventEmitter.call(this);
-
-  this.assert = new AssertWrapper(this);
-  this.numAssertionsExpected = null;
-
-  this.__name = name;
-  this.__phase = 'setup';
-  this.__func = func;
-  this.__suite = suite;
-  this.__finishedCallback = null;
-  this.__numAssertions = 0;
-  this.__finished = false;
-  this.__failure = null;
-  this.__symbol = '.';
-};
-sys.inherits(Test, events.EventEmitter);
-
-Test.prototype.run = function() {
-  var self = this;
-
-  try {
-    this.__phase = 'test';
-    this.__func(this.assert, function() { self.finish(); }, this);
-  }
-  catch(err) {
-    if( this.listeners('uncaughtException').length > 0 ) {
-      this.emit('uncaughtException',err);
-    }
-    else {
-      this.failed(err);
-    }
-  }
-
-  // they didn't ask for the finish function so assume it is synchronous
-  if( this.__func.length < 2 ) {
-    this.finish();
-  }
-};
-Test.prototype.finish = function() {
-  if( !this.__finished ) {
-    this.__finished = true;
-
-    if( this.__failure === null && this.numAssertionsExpected !== null ) {
-      try {
-        var message = this.numAssertionsExpected + (this.numAssertionsExpected == 1 ? ' assertion was ' : ' assertions were ')
-                    + 'expected but ' + this.__numAssertions + ' fired';
-        assert.equal(this.numAssertionsExpected, this.__numAssertions, message);
-      }
-      catch(err) {
-        this.__failure = err;
-        this.__symbol = 'F';
-      }
-    }
-
-    if( this.__finishedCallback ) {
-      this.__finishedCallback(this.__numAssertions);
-    }
-  }
-};
-Test.prototype.failureString = function() {
-  var output = '';
-
-  if( this.__symbol == 'F' ) {
-    output += '  test "' + this.__name + '" failed: \n';
-  }
-  else {
-    output += '  test "' + this.__name + '" threw an error';
-    if( this.__phase !== 'test' ) {
-      output += ' during ' + this.__phase;
-    }
-    output += ': \n';
-  }
-
-  if( this.__failure.stack ) {
-    this.__failure.stack.split("\n").forEach(function(line) {
-        output += '  ' + line + '\n';
-      });
-    
-  }
-  else {
-    output += '  '+this.__failure;
-  }
-
-  return output;
-};
-Test.prototype.failed = function(err) {
-  this.__failure = err;
-  if( err instanceof assert.AssertionError ) {
-    this.__symbol = 'F';
-  }
-  else {
-    this.__symbol = 'E';
-  }
-
-  if( !this.__finished ) {
-    this.finish();
-  }
-};
-
-var TestSuite = exports.TestSuite = function(name) {
-  this.name = name;
-  this.wait = true;
-  this.tests = [];
-  this.numAssertions = 0;
-  this.numFinishedTests = 0;
-  this.numFailedTests = 0;
-  this.finished = false;
-  this.callback = null;
-
-  this._setup = null;
-  this._teardown = null;
-
-  var suite = this;
-  process.addListener('exit', function() {
-      if( !suite.wait ) {
-        suite.finish();
-      }
     });
 
-  // I'm having trouble doing instance of tests to see if something
-  // is a test suite, so i'll add a property nothing is likely to have
-  this.nodeAsyncTesting = 42;
-};
-TestSuite.prototype.finish = function() {
-  if( this.finished ) {
-    return;
-  }
+  return assertWrapper;
+}
 
-  this.finished = true;
+exports.runTests = function(obj, options, callback) {
+  // make sure options exist
+  options = options || {};
 
-  var failures = [];
-  this.tests.forEach(function(t) {
-      if( !t.__finished ) {
-        t.finish();
-      }
-      if( t.__failure !== null ) {
-        this.numFailedTests++;
-        failures.push(t);
-      }
-    },this);
+  /* available options:
+   *
+   * + parallel: true or false, for whether or not the tests should be run
+   *     in parallel or serially.  Obviously, parallel is faster, but it doesn't
+   *     give as accurate error reporting
+   *
+   * + test name: string, the name of a test to be ran
+   */
 
-
-  output = '\n';
-  output += this.tests.length + ' test' + (this.tests.length == 1 ? '' : 's') + '; ';
-  output += failures.length + ' failure' + (failures.length == 1 ? '' : 's') + '; ';
-  output += this.numAssertions + ' assertion' + (this.numAssertions == 1 ? '' : 's') + ' ';
-  sys.error(output);
-
-  sys.error('');
-  failures.forEach(function(t) {
-      sys.error(t.failureString());
-    });
-
-  if( this.callback ) {
-    this.callback();
-  }
-};
-
-TestSuite.prototype.setup = function(func) {
-  this._setup = func;
-  return this;
-};
-TestSuite.prototype.teardown = function(func) {
-  this._teardown = func;
-  return this;
-};
-TestSuite.prototype.waitForTests = function(yesOrNo) {
-  if(typeof yesOrNo == 'undefined') {
-    yesOrNo = true;
-  }
-  this.wait = yesOrNo;
-  return this;
-};
-TestSuite.prototype.addTests = function(tests) {
-  for( var testName in tests ) {
-    var t = new Test(testName, tests[testName], this);
-    this.tests.push(t);
-  };
-
-  return this;
-};
-TestSuite.prototype.runTests = function(callback) {
-  if( callback ) {
-    this.callback = callback;
-  }
-  sys.error('Running "' + this.name + '"');
-  this.runTest(0);
-};
-TestSuite.prototype.runTest = function(testIndex) {
-  if( testIndex >= this.tests.length ) {
-    return;
-  }
-
-  var t = this.tests[testIndex];
-  t.__finishedCallback = finishedCallback;
-  var suite = this;
-
-  var wait = suite.wait;
-
-  if(wait) {
-    // if we are waiting then let's assume we are only running one test at 
-    // a time, so we can catch all errors
-    var errorListener = function(err) {
-      if( t.listeners('uncaughtException').length > 0 ) {
-        t.emit('uncaughtException',err);
-      }
-      else {
-        t.failed(err);
-      }
-    };
-    process.addListener('uncaughtException', errorListener);
-
-    var exitListener = function() {
-      sys.error("\n\nOoops! The process exited in the middle of the test '" + t.__name + "'\nDid you forget to finish it?\n");
-    };
-    process.addListener('exit', exitListener);
-  }
-  else {
-    sys.error('  Starting test "' + this.__name + '"');
-  }
-
-  try {
-    if(this._setup) {
-      if( this._setup.length == 0 ) {
-        this._setup.call(t);
-        afterSetup();
-      }
-      else {
-        this._setup.call(t, afterSetup, t);
-      }
+  // keep track of internal state
+  var state =
+    { todo: []
+    , started: []
+    , results: []
+    , numTests: 0
     }
-    else {
-      afterSetup();
-    }
-  }
-  catch(err) {
-    t.failed(err);
-  }
 
-  function afterSetup() {
-    t.run();
-
-    if( !wait ) {
-      suite.runTest(testIndex+1);
+  // fill up our todo array
+  for(var key in obj) {
+    if (!options.name || options.name == key) {
+      state.todo.push({name: key , func: obj[key]});
+      state.numTests++;
     }
   }
 
-  function finishedCallback(numAssertions) {
-    var teardownCallback = function() {
-      suite.numAssertions += numAssertions;
-      suite.numFinishedTests++;
+  // add our global error listener
+  process.addListener('uncaughtException', errorHandler);
 
-      if( wait ) {
-        process.binding('stdio').writeError(t.__symbol);
-        process.removeListener('uncaughtException', errorListener);
-        process.removeListener('exit', exitListener);
-        suite.runTest(testIndex+1);
-      }
+  // start the test chain
+  startNextTest();
 
-      if( suite.numFinishedTests == suite.tests.length ) {
-        suite.finish();
-      }
-    }
+  /******** functions ********/
+
+  function startNextTest() {
+    // pull off the next test
+    var curTest = state.todo.shift();
+
+    // break out of this loop if we don't have any more tests to run
+    if (!curTest) { return; }
+
+    // move our test to the list of started tests
+    state.started.push(curTest);
+
+    // state
+    curTest.startTime = new Date();
+    curTest.numAssertions = 0;
+    curTest.finish = testFinished;
+    curTest.UEHandler = null;
+    curTest.obj =
+      { get uncaughtExceptionHandler() { return curTest.UEHandler; }
+      , set uncaughtExceptionHandler(h) {
+          if(options.parallel) {
+            throw new Error("Cannot set an 'uncaughtExceptionHandler' when running tests in parallel");
+          }
+          curTest.UEHandler = h;
+        }
+      };
 
     try {
-      if(suite._teardown) {
-        t.__phase = 'teardown';
-        if( suite._teardown.length == 0 ) {
-          suite._teardown.call(t);
-          teardownCallback();
-        }
-        else {
-          suite._teardown.call(t, teardownCallback, t);
-        }
-      }
-      else {
-        teardownCallback();
-      }
+      // actually call the test
+      curTest.func.call(curTest.obj, wrapAssert(curTest), function() { curTest.finish() }, curTest.obj);
     }
     catch(err) {
-      t.failed(err);
-      teardownCallback();
+      errorHandler(err);
     }
-  }
-};
 
-exports.runSuites = function(module, callback) {
-  var suites = [];
+      // if they didn't call for the callback function they are synchronous
+      if (curTest.func.length < 2 && typeof curTest.finished == 'undefined') {
+        curTest.finish();
+      }
 
-  for( var suiteName in module ) {
-    var suite = module[suiteName];
-
-    if(suite && suite.nodeAsyncTesting == 42) {
-      suite.name = suiteName;
-      suites.push(suite);
+    // if we are supposed to run the tests in parallel, start the next test
+    if (options.parallel) {
+      startNextTest();
     }
   }
 
-  var stats = {
-    numSuites: 0,
-    numFailed: 0
-  };
+  // called when a test finishes, either successfully or from an assertion error
+  function testFinished(failure) {
+    // calculate the time it took
+    this.duration = new Date() - this.startTime;
+    delete this.startTime;
 
-  function runNextSuite() {
-    if( suites.length < 1 ) {
-      return callback ? callback(stats) : null;
+    this.finished = true;
+    
+    // if we had an assertion error it will be passed in
+    if (failure) {
+      this.failure = failure;
     }
-    var suite = suites.shift();
-    suite.runTests(function() {
-        if( suites.length > 0 ) {
-          sys.error('----------------------------------\n');
-        }
-        stats.numSuites++;
-        if( suite.numFailedTests > 0 ) {
-          stats.numFailed++;
-        }
-        runNextSuite();
+    // otherwise, if they specified the number of assertions, let's make sure
+    // they match up
+    else {
+      if(this.obj.numAssertionsExpected && this.obj.numAssertionsExpected != this.numAssertions) {
+        this.failure = new assert.AssertionError(
+           { message: 'Wrong number of assertions'
+           , actual: this.numAssertions
+           , expected: this.obj.numAssertionsExpected
+           });
+      }
+    }
+
+    // remove it from the list of tests that have been started
+    for(var i = 0; i < state.started.length; i++) {
+      if (state.started[i].name == this.name) {
+        state.started.splice(i,1);
+      }
+    }
+
+    // if it was a candidate for an error, go through and remove its candidacy
+    if (this.errors) {
+      for(var i = 0; i < this.errors.length; i++) {
+        var index = this.errors[i].candidates.indexOf(this);
+        this.errors[i].candidates.splice(index,1);
+      }
+      delete this.errors;
+    }
+
+    // mark that this test has completed
+    testResults(this);
+
+    // if we are running tests serially, then we need to start the next test
+    if (!options.parallel) {
+      process.nextTick(function() {
+        startNextTest();
       });
+    }
+
+    // check to see if we are all done
+    testsMightBeDone();
   }
 
-  sys.puts('');
-  runNextSuite();
-};
+  // listens for uncaught errors and keeps track of which tests they could
+  // be from
+  function errorHandler(err) {
+    if( err instanceof assert.AssertionError && err.ALREADY_HANDLED ) {
+      return;
+    }
+
+    // we want to allow tests to supply a function for handling uncaught errors,
+    // and since all uncaught errors come here, this is where we have to handle
+    // them We don't want to do this for AssertionErrors, so we test for this
+    // after we have tested for that.
+    if( !options.parallel && state.started[0].UEHandler ) {
+      try {
+        // run the UncaughtExceptionHandler
+        state.started[0].UEHandler(err);
+        return;
+      }
+      catch(e) {
+        // if the UncaughtExceptionHandler raises an Error we have to make sure
+        // it is handled.
+
+        // The error raised could be an AssertionError, in that case we don't
+        // want to raise an error for that...
+
+        if( e instanceof assert.AssertionError && e.ALREADY_HANDLED ) {
+          return;
+        }
+
+        // If we get here we want to use the error in the rest of the function
+        err = e;
+      }
+    }
+
+    // create the result object for the test that just completed in error
+    var details = {error: err, candidates: []};
+    for(var i = 0; i < state.started.length; i++) {
+      // keep track of which tests were eligble to have caused this error
+      details.candidates.push(state.started[i]);
+      state.started[i].errors = state.started[i].errors || [];
+      state.started[i].errors.push(details);
+    }
+
+    // some test just completed in an error.  Call the testResults method which
+    // will look at candidates and what not to try to determine who failed
+    testResults(details);
+
+    // if we are running tests serially, then a test just finished so we have
+    // to start the next one
+    if (!options.parallel) {
+      startNextTest();
+    }
+
+    // check to see if we are all done
+    testsMightBeDone();
+  }
+
+  function testResults(test) {
+    state.results.push(test);
+
+    // this isn't necessarily the best place for this, but any time a test
+    // finishes, we could learn more about errors that had multiple candidates, so
+    // loop through and see if anything has changed
+    for(var i = 0; i < state.results.length; i++) {
+      if(state.results[i].candidates && state.results[i].candidates.length == 1) {
+        var t = state.results[i].candidates[0];
+        for(var j = 0; j < state.started.length; j++) {
+          if (state.started[j] == t) {
+            state.started.splice(j,1);
+          }
+        }
+
+        delete state.results[i].candidates;
+        state.results[i].test = t;
+
+        t.finished = true;
+
+        sys.puts('test "'+t.name+'" errored');
+      }
+    }
+
+    if (!test.error) {
+      if( test.failure ) {
+        sys.puts('test "'+test.name+'" failed');
+      }
+      else {
+        sys.puts('test "'+test.name+'" finished');
+      }
+    }
+  }
+
+  // checks to see if we are done, and if so, runs the cleanup method
+  function testsMightBeDone() {
+    if(state.results.length == state.numTests) {
+      testsDone();
+    }
+  }
+
+  // clean up method which notifies all listeners of what happened
+  function testsDone() {
+    //sys.puts(sys.inspect(state.results));
+    
+    if (callback) {
+      callback();
+    }
+
+    process.removeListener('uncaughtException', errorHandler);
+  }
+}
