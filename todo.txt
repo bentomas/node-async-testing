@@ -1,4 +1,12 @@
 exit status codes
-run specific suites
-run specific tests
-if a test doesn't finish, mention this on exit
+if a test doesn't finish, mention that on exit
+pluralization of "tests" in suite summary line in default runner
+cleanup misorganized code:
+  testResults function
+  multiErrors function
+is the distinction between errors and failures useful?
+in runSuites, if can't find a file, throw warning don't error
+onStart (numSuites)
+add numTests to onSuiteStart
+
+process.removeListener getting called before all events have gone through
