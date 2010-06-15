@@ -32,8 +32,34 @@ exports['test async error fail'] = function(assert, finished) {
   var e = new Error();
 
   this.uncaughtExceptionHandler = function(err) {
-    assert.ok(false, 'this fails asynchronously');
+    assert.ok(false, 'this fails synchronously');
     finished();
+  }
+
+  setTimeout(function() {
+      throw e;
+    }, 500);
+};
+exports['test sync error async fail'] = function(assert, finished) {
+  var e = new Error();
+
+  this.uncaughtExceptionHandler = function(err) {
+    process.nextTick(function() {
+        assert.ok(false, 'this fails asynchronously');
+        finished();
+      });
+  }
+
+  throw e;
+};
+exports['test async error async fail'] = function(assert, finished) {
+  var e = new Error();
+
+  this.uncaughtExceptionHandler = function(err) {
+    process.nextTick(function() {
+        assert.ok(false, 'this fails asynchronously');
+        finished();
+      });
   }
 
   setTimeout(function() {
@@ -54,6 +80,30 @@ exports['test async error error again'] = function(assert, finished) {
 
   this.uncaughtExceptionHandler = function(err) {
     throw new Error('second error');
+  }
+
+  setTimeout(function() {
+      throw e;
+    }, 500);
+};
+exports['test sync error error again async'] = function(assert, finished) {
+  var e = new Error('first error');
+
+  this.uncaughtExceptionHandler = function(err) {
+    process.nextTick(function() {
+        throw new Error('second error');
+      });
+  }
+
+  throw e;
+};
+exports['test async error error again async'] = function(assert, finished) {
+  var e = new Error('first error');
+
+  this.uncaughtExceptionHandler = function(err) {
+    process.nextTick(function() {
+        throw new Error('second error');
+      });
   }
 
   setTimeout(function() {

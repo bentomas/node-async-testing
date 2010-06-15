@@ -41,7 +41,7 @@ exports.def = function(list, options) {
           break;
         case "--suite-name":
         case "-n":
-          options.suite = args[i+1];
+          options.suiteName = args[i+1];
           i++;
           break;
         case "--help":
@@ -54,7 +54,7 @@ exports.def = function(list, options) {
     }
 
     if( list.length < 1 ) {
-      list = [process.cwd()];
+      list = ['.'];
     }
   }
 
@@ -93,28 +93,25 @@ exports.def = function(list, options) {
     , suiteName: options.suiteName
     , onSuiteStart: function(name) {
         if (name) {
-          sys.puts(bold(path.basename(name)));
+          sys.puts(bold(name));
         }
         else {
           sys.puts('');
         }
       }
-    , onSuiteDone: function(name, results) {
-        if (results.length == 0) {
+    , onSuiteDone: function(suiteResults) {
+        var tests = suiteResults.tests;
+
+        if (tests.length == 0) {
           return;
         }
 
         sys.puts('');
         if( typeof options.verbose == 'undefined' || !options.verbose ) {
-          var failures = 0;
-          var errors = 0;
-          var successes = 0;
-
           if(options.verbosity > 0) {
-            for(var i = 0; i < results.length; i++) {
-              var r = results[i];
+            for(var i = 0; i < tests.length; i++) {
+              var r = tests[i];
               if (r.status == 'failure') {
-                failures++;
                 sys.puts('  Failure: '+red(r.name));
                 var s = r.failure.stack.split("\n");
                 sys.puts('    '+ s[0].substr(16));
@@ -131,9 +128,8 @@ exports.def = function(list, options) {
                     sys.puts(s[k]);
                   }
                 }
-              }           
+              }
               else if (r.status == 'error') {
-                errors++;
                 sys.puts('  Error: '+yellow(r.name));
 
                 if (r.error.message) {
@@ -153,7 +149,7 @@ exports.def = function(list, options) {
                     sys.puts(s[k]);
                   }
                 }
-              }           
+              }
               else if (r.status == 'multiError') {
                 sys.print('  Non-specific errors: ');
                 for(var j = 0; j < r.name.length; j++) {
@@ -164,7 +160,6 @@ exports.def = function(list, options) {
                 }
                 sys.puts('');
                 for(var j = 0; j < r.errors.length; j++) {
-                  errors++;
                   var s = r.errors[j].stack.split("\n");
                   sys.puts('  + '+s[0]);
                   if (options.verbosity == 1) {
@@ -181,26 +176,26 @@ exports.def = function(list, options) {
                     }
                   }
                 }
-              }           
-              else {
-                successes++;
               }
             }
 
-            var total = failures+successes+errors;
+            var total = suiteResults.numFailures+suiteResults.numErrors+suiteResults.numSuccesses;
 
-            if (failures + errors > 0) {
+            if (suiteResults.numFailures + suiteResults.numErrors > 0) {
               sys.puts('');
-              if (failures > 0) {
-                sys.puts('  FAILURES: '+failures+'/'+total+' tests failed');
+              sys.print(' ');
+              if (suiteResults.numFailures > 0) {
+                sys.print(' FAILURES: '+suiteResults.numFailures+'/'+total+' tests failed.');
               }
-              if (errors > 0) {
-                sys.puts('  ERRORS: '+errors+'/'+total+' tests errored');
+              if (suiteResults.numErrors > 0) {
+                sys.print(' ERRORS: '+suiteResults.numErrors+'/'+total+' tests errored.');
               }
             }
             else {
-              sys.puts('  '+green('OK: ')+total+' tests');
+              sys.print(' '+green('OK: ')+total+' tests.');
             }
+
+            sys.puts(' '+(suiteResults.duration/1000)+' seconds.');
             sys.puts('');
           }
         }
@@ -221,32 +216,33 @@ exports.def = function(list, options) {
           }
         }
       }
-    , onDone: function(allResults) {
+    , onDone: function(allResults, duration) {
         var successes = 0;
         var total = 0;
         var tests = 0;
 
         for(var i = 0; i < allResults.length; i++) {
-          if (allResults[i].results.length > 0) {
+          if (allResults[i].tests.length > 0) {
             total++;
 
-            if (allResults[i].errors == 0 && allResults[i].failures == 0) {
+            if (allResults[i].numErrors == 0 && allResults[i].numFailures == 0) {
               successes++;
             }
 
-            tests += allResults[i].errors;
-            tests += allResults[i].failures;
-            tests += allResults[i].successes;
+            tests += allResults[i].numErrors;
+            tests += allResults[i].numFailures;
+            tests += allResults[i].numSuccesses;
           }
         }
 
         if (total > 1) {
           if(successes != total) {
-            sys.puts(bold(red('PROBLEMS: ')+(total-successes)+'/'+total+' suites had problems. '+tests+' total tests.'));
+            sys.print(bold(red('PROBLEMS: ')+(total-successes)+'/'+total+' suites had problems.'));
           }
           else {
-            sys.puts(bold(green('SUCCESS: ')+total+'/'+total+' suites passed successfully. '+tests+' total tests.'));
+            sys.print(bold(green('SUCCESS: ')+total+'/'+total+' suites passed successfully.'));
           }
+          sys.puts(bold(' ' + tests+(tests == 1 ? ' test' : ' total tests')+'. '+(duration/1000)+' seconds.'));
         }
       }
     }

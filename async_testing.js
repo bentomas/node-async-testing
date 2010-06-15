@@ -30,12 +30,7 @@ function wrapAssert(test) {
         }
         catch(err) {
           if (err instanceof assert.AssertionError) {
-            test.finish(err);
-
-            // we need to continue to throw an error otherwise the rest
-            // of the test will keep running.  A test should stop running as
-            // soon as it fails
-            err.ALREADY_HANDLED = true;
+            err.TEST = test;
             throw err;
           }
         }
@@ -59,7 +54,7 @@ exports.runSuite = function(obj, options) {
    */
 
   // keep track of internal state
-  var state =
+  var suite =
     { todo: []
     , started: []
     , results: []
@@ -71,20 +66,15 @@ exports.runSuite = function(obj, options) {
     // if the testName option is set, then only add the test to the todo
     // list if the name matches
     if (!options.testName || options.testName == key) {
-      state.todo.push({name: key , func: obj[key]});
-      state.numTests++;
+      suite.todo.push({name: key , func: obj[key]});
+      suite.numTests++;
     }
   }
 
-  // add our global error listener
-  process.addListener('uncaughtException', errorHandler);
-
-  if (state.todo.length < 1) {
-    // We're done.  No tests to run.
-    if (options.onSuiteDone) {
-      options.onSuiteDone(options.name, []);
-    }
-    return;
+  // Check to see if there are even any tests to run
+  if (suite.todo.length < 1) {
+    // Nope.  We're done.
+    return testsDone();
   }
 
   // notify that we are starting:
@@ -92,6 +82,10 @@ exports.runSuite = function(obj, options) {
     options.onSuiteStart(options.name);
   }
 
+  // add our global error listener
+  process.addListener('uncaughtException', errorHandler);
+
+  suite.startTime = new Date();
   // start the test chain
   startNextTest();
 
@@ -99,7 +93,7 @@ exports.runSuite = function(obj, options) {
 
   function startNextTest() {
     // pull off the next test
-    var curTest = state.todo.shift();
+    var curTest = suite.todo.shift();
 
     // break out of this loop if we don't have any more tests to run
     if (!curTest) {
@@ -107,7 +101,7 @@ exports.runSuite = function(obj, options) {
     }
 
     // move our test to the list of started tests
-    state.started.push(curTest);
+    suite.started.push(curTest);
 
     // for calculating how long a test takes
     curTest.startTime = new Date();
@@ -122,7 +116,7 @@ exports.runSuite = function(obj, options) {
     curTest.obj =
       // we use getters and setters for the uncaughtExceptionHandler because it
       // looks nicer but we need to be able to throw an error if they are running in
-      // parallel 
+      // parallel
       { get uncaughtExceptionHandler() { return curTest.UEHandler; }
       , set uncaughtExceptionHandler(h) {
           if (options.parallel) {
@@ -132,6 +126,7 @@ exports.runSuite = function(obj, options) {
         }
       };
 
+    // notify listeners
     if (options.onTestStart) {
       options.onTestStart(curTest.name);
     }
@@ -165,7 +160,7 @@ exports.runSuite = function(obj, options) {
 
     // mark it as finished
     this.finished = true;
-    
+
     // if we had an assertion error it will be passed in
     if (failure) {
       this.failure = failure;
@@ -176,7 +171,7 @@ exports.runSuite = function(obj, options) {
       if (this.obj.numAssertionsExpected && this.obj.numAssertionsExpected != this.numAssertions) {
         this.failure = new assert.AssertionError(
            { message: 'Wrong number of assertions: ' + this.obj.numAssertionsExpected +
-                           ' expected, ' + this.numAssertions + ' fired'
+                      ' expected, ' + this.numAssertions + ' fired'
            , actual: this.numAssertions
            , expected: this.obj.numAssertionsExpected
            });
@@ -184,9 +179,9 @@ exports.runSuite = function(obj, options) {
     }
 
     // remove it from the list of tests that have been started
-    for(var i = 0; i < state.started.length; i++) {
-      if (state.started[i].name == this.name) {
-        state.started.splice(i,1);
+    for(var i = 0; i < suite.started.length; i++) {
+      if (suite.started[i].name == this.name) {
+        suite.started.splice(i,1);
       }
     }
 
@@ -217,20 +212,25 @@ exports.runSuite = function(obj, options) {
   // be from
   function errorHandler(err) {
     // assertions throw an error, but we can't just catch those errors, because
-    // then the rest of test will run.  so, we don't catch it and it ends up
-    // here. So we just ignore it.
-    if (err instanceof assert.AssertionError && err.ALREADY_HANDLED) {
-      delete err.ALREADY_HANDLED;
+    // then the rest of the test will run.  So, we don't catch it and it ends up
+    // here. When that happens just finish the test.
+    if (err instanceof assert.AssertionError && err.TEST) {
+      err.TEST.finish(err);
+      delete err.TEST;
       return;
     }
 
-    // we want to allow tests to supply a function for handling uncaught errors,
+    // We want to allow tests to supply a function for handling uncaught errors,
     // and since all uncaught errors come here, this is where we have to handle
     // them.
-    if (!options.parallel && state.started[0].UEHandler) {
+    if (!options.parallel && suite.started[0].UEHandler) {
       try {
         // run the UncaughtExceptionHandler
-        state.started[0].UEHandler(err);
+        // an error could possibly be thrown in the UncaughtExceptionHandler, in
+        // this case we do not want to call it again, so we move it
+        suite.started[0].UEHandlerUsed = suite.started[0].UEHandler;
+        delete suite.started[0].UEHandler;
+        suite.started[0].UEHandlerUsed(err);
         return;
       }
       catch(e) {
@@ -239,9 +239,9 @@ exports.runSuite = function(obj, options) {
 
         // The error raised could be an AssertionError, in that case we don't
         // want to raise an error for that (see the above comment)...
-
-        if (e instanceof assert.AssertionError && e.ALREADY_HANDLED) {
-          delete err.ALREADY_HANDLED;
+        if (e instanceof assert.AssertionError && e.TEST) {
+          e.TEST.finish(e);
+          delete e.TEST;
           return;
         }
 
@@ -252,11 +252,11 @@ exports.runSuite = function(obj, options) {
 
     // create the result object for the test that just completed in error
     var details = {error: err, candidates: [], endTime: new Date()};
-    for(var i = 0; i < state.started.length; i++) {
+    for(var i = 0; i < suite.started.length; i++) {
       // keep track of which tests were eligble to have caused this error
-      details.candidates.push(state.started[i]);
-      state.started[i].errors = state.started[i].errors || [];
-      state.started[i].errors.push(details);
+      details.candidates.push(suite.started[i]);
+      suite.started[i].errors = suite.started[i].errors || [];
+      suite.started[i].errors.push(details);
     }
 
     // some test just completed in an error.  Call the testResults method which
@@ -276,37 +276,43 @@ exports.runSuite = function(obj, options) {
   }
 
   function testResults(test) {
-    state.results.push(test);
+    if(!test.error) {
+      var formattedTest = formatTestResult(test);
+      suite.results.push(formattedTest);
+    }
+    else {
+      suite.results.push(test);
+    }
 
     // this isn't necessarily the best place for this, but any time a test
     // finishes, we could learn more about errors that had multiple candidates, so
     // loop through and see if anything has changed
-    for(var i = 0; i < state.results.length; i++) {
-      if (state.results[i].candidates && state.results[i].candidates.length == 1) {
+    for(var i = 0; i < suite.results.length; i++) {
+      if (suite.results[i].candidates && suite.results[i].candidates.length == 1) {
         // get the test
-        var t = state.results[i].candidates[0];
+        var t = suite.results[i].candidates[0];
         // remove it from the list of started tests
-        for(var j = 0; j < state.started.length; j++) {
-          if (state.started[j] == t) {
-            state.started.splice(j,1);
+        for(var j = 0; j < suite.started.length; j++) {
+          if (suite.started[j] == t) {
+            suite.started.splice(j,1);
           }
         }
 
         // clean the results object a little bit
-        t.error = state.results[i].error;
+        t.error = suite.results[i].error;
         t.duration = t.errors[0].endTime - t.startTime;
         delete t.errors;
         delete t.error.candidates;
         delete t.startTime;
         delete t.error.endTime;
 
-        state.results[i] = t;
-
         // make sure the test is finished.
         t.finished = true;
 
+        suite.results[i] = formatTestResult(t);
+
         if (options.onTestDone) {
-          options.onTestDone(formatTestResult(t));
+          options.onTestDone(suite.results[i]);
         }
       }
     }
@@ -315,7 +321,7 @@ exports.runSuite = function(obj, options) {
     // don't want to output it twice.
     if (!test.error) {
       if (options.onTestDone) {
-        options.onTestDone(formatTestResult(test));
+        options.onTestDone(formattedTest);
       }
     }
   }
@@ -356,32 +362,57 @@ exports.runSuite = function(obj, options) {
 
   // checks to see if we are done, and if so, runs the cleanup method
   function testsMightBeDone() {
-    if (state.results.length == state.numTests) {
+    if (suite.results.length == suite.numTests) {
       testsDone();
     }
   }
 
   // clean up method which notifies all listeners of what happened
   function testsDone() {
-    process.nextTick(function() {
-      process.removeListener('uncaughtException', errorHandler);
-      
-      if (options.onSuiteDone) {
-        //clean up the results before sending them along
+    process.removeListener('uncaughtException', errorHandler);
 
-        multiErrors(state.results);
+    if (options.onSuiteDone) {
+      var endTime = new Date();
 
-        var r = [];
-        for(var i = 0; i < state.results.length; i++) {
-          r.push(formatTestResult(state.results[i]));
+      groupMultiErrors(suite.results);
+
+      var result =
+        { name: options.name
+        , duration: endTime - suite.startTime
+        , tests: []
+        , numErrors: 0
+        , numFailures: 0
+        , numSuccesses: 0
+        };
+
+
+      for(var i = 0; i < suite.results.length; i++) {
+        var r = suite.results[i];
+
+        result.tests.push(r);
+
+        if (r.status == 'failure') {
+          result.numFailures++;
         }
-        options.onSuiteDone(options.name, r);
+        else if (r.status == 'error') {
+          result.numErrors++;
+        }
+        else if (r.status == 'multiError') {
+          for(var j = 0; j < r.errors.length; j++) {
+            result.numErrors++;
+          }
+        }
+        else {
+          result.numSuccesses++;
+        }
       }
-    });
+
+      options.onSuiteDone(result);
+    }
   }
 
-  // this isn't as efficient as it could be.  Basically, we 
-  function multiErrors(results) {
+  // this isn't as efficient as it could be.  Basically, we
+  function groupMultiErrors(results) {
     var multiErrors = [];
     for(var i = 0; i < results.length; i++) {
       if (results[i].candidates) {
@@ -403,11 +434,12 @@ exports.runSuite = function(obj, options) {
         }
       }
 
+      var formatted = formatTestResult(r);
       if (options.onTestDone) {
-        options.onTestDone(formatTestResult(r));
+        options.onTestDone(formatted);
       }
 
-      results.push(r);
+      results.push(formatted);
     }
   }
 }
@@ -415,23 +447,6 @@ exports.runSuite = function(obj, options) {
 exports.runSuites = function(list, options) {
   // make sure options exist
   options = options || {};
-
-  /* Available options:
-   *
-   * + parallel: true or false, default false, for whether or not the tests
-   *   should be run in parallel or serially.  Obviously, parallel is faster,
-   *   but it doesn't give as accurate error reporting
-   * + suiteName: string, if you want to limit which suite is run
-   * + testName: string, if you want to limit which test is run
-   *
-   * Events:
-   *
-   * + onSuiteStart: function(name), when we start running tests for a file/module
-   * + onSuiteDone: function(name, results), when we're done running tests for
-   *   a file/module
-   * + onTestStart: function(result), when we start a particular test
-   * + onTestDone: function(name), when we finish a particular test
-   */
 
   if (list.constructor != Array) {
     list = [list];
@@ -441,6 +456,7 @@ exports.runSuites = function(list, options) {
     , allResults = []
     , suites = []
     , explicit = []
+    , startTime
     ;
 
   for(var i = 0; i < list.length; i++) {
@@ -452,7 +468,7 @@ exports.runSuites = function(list, options) {
 
   function processNextItem() {
     if( list.length == 0 ) {
-      return runNextSuite();
+      return startSuites();
     }
 
     var item = list.shift();
@@ -475,7 +491,8 @@ exports.runSuites = function(list, options) {
 
         if (stat.isFile()) {
           if (explicit.indexOf(item) >= 0 || path.basename(file).match(/^test-.*\.js$/)) {
-            suites.push({suite: require(path.join(path.dirname(file), path.basename(file, path.extname(file)))), name: item});
+            var mod = require(path.join(path.dirname(file), path.basename(file, path.extname(file))));
+            suites.push({suite: mod, name: item});
           }
           processNextItem();
         }
@@ -486,7 +503,7 @@ exports.runSuites = function(list, options) {
               }
               for(var i = 0; i < files.length; i++) {
                 if (files[i].match(/^[^.]/)) {
-                  list.push(path.join(file,files[i]));
+                  list.push(path.join(item,files[i]));
                 }
               }
 
@@ -496,13 +513,30 @@ exports.runSuites = function(list, options) {
       });
   }
 
+  function startSuites() {
+    if (typeof options.suiteName == 'string') {
+      for(var i = 0; i < suites.length; i++) {
+        if (options.suiteName != suites[i].name) {
+          suites.splice(i,1);
+          i--;
+        }
+      }
+    }
+    if (options.onStart) {
+      options.onStart(suites.length);
+    }
+
+    startTime = new Date();
+    runNextSuite();
+  }
+
   function runNextSuite() {
     var item = suites[index];
     index++;
 
     if (!item) {
       if (options.onDone) {
-        options.onDone(allResults);
+        options.onDone(allResults, new Date()-startTime);
       }
       return;
     }
@@ -515,34 +549,18 @@ exports.runSuites = function(list, options) {
       , testName: options.testName
       , name: name
       , onSuiteStart: options.onSuiteStart
-      , onSuiteDone: function(name, results) {
-          var failures = 0;
-          var errors = 0;
-          var successes = 0;
-
-          for(var i = 0; i < results.length; i++) {
-            var r = results[i];
-            if (r.status == 'failure') {
-              failures++;
-            }
-            else if (r.status == 'error') {
-              errors++;
-            }
-            else if (r.status == 'multiError') {
-              for(var j = 0; j < r.errors.length; j++) {
-                errors++;
-              }
-            }
-            else {
-              successes++;
-            }
-          }
-
-          allResults.push({name: name, results: results, errors: errors, failures: failures, successes: successes});
+      , onSuiteDone: function(results) {
+          allResults.push(results);
 
           if (options.onSuiteDone) {
-            options.onSuiteDone(name, results);
+            try {
+            options.onSuiteDone(results);
+            }
+            catch(err) {
+              sys.puts(err.stack);
+            }
           }
+
           process.nextTick(function() {
               runNextSuite();
             });
@@ -551,11 +569,6 @@ exports.runSuites = function(list, options) {
       , onTestDone: options.onTestDone
       }
 
-    if (!options.suiteName || options.suiteName == name) {
-      exports.runSuite(suite, itemOpts);
-    }
-    else {
-      runNextSuite();
-    }
+    exports.runSuite(suite, itemOpts);
   }
 }

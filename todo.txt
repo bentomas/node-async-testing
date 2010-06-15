@@ -1,12 +1,12 @@
+features
+--------
 exit status codes
 if a test doesn't finish, mention that on exit
-pluralization of "tests" in suite summary line in default runner
 cleanup misorganized code:
   testResults function
-  multiErrors function
-is the distinction between errors and failures useful?
 in runSuites, if can't find a file, throw warning don't error
-onStart (numSuites)
-add numTests to onSuiteStart
 
-process.removeListener getting called before all events have gone through
+questions
+---------
+is the distinction between errors and failures useful?
+should we require all tests to call the finished function?
