@@ -12,4 +12,17 @@ catch(err) {
   }
 }
 
-testing.run(null, process.ARGV);
+testing.run(null, process.ARGV, done);
+
+function done(allResults) {
+  var problems = 0;
+
+  for(var i = 0; i < allResults.length; i++) {
+    if (allResults[i].tests.length > 0) {
+      problems += allResults[i].numErrors;
+      problems += allResults[i].numFailures;
+    }
+  }
+
+  process.exit(problems);
+}

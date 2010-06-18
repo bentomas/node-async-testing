@@ -1,64 +1,66 @@
-exports['test catch sync error'] = function(assert) {
+exports['test catch sync error'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
-    assert.equal(e, err);
+  test.uncaughtExceptionHandler = function(err) {
+    test.equal(e, err);
+    test.finished();
   }
 
   throw e;
 };
-exports['test catch async error'] = function(assert, finished) {
+exports['test catch async error'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
-    assert.equal(err, e);
-    finished();
+  test.uncaughtExceptionHandler = function(err) {
+    test.equal(err, e);
+    test.finished();
   }
 
   setTimeout(function() {
       throw e;
     }, 500);
 };
-exports['test sync error fail'] = function(assert) {
+exports['test sync error fail'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
-    assert.ok(false, 'this fails synchronously');
+  test.uncaughtExceptionHandler = function(err) {
+    test.ok(false, 'this fails synchronously');
+    test.finished();
   }
 
   throw e;
 };
-exports['test async error fail'] = function(assert, finished) {
+exports['test async error fail'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
-    assert.ok(false, 'this fails synchronously');
-    finished();
+  test.uncaughtExceptionHandler = function(err) {
+    test.ok(false, 'this fails synchronously');
+    test.finished();
   }
 
   setTimeout(function() {
       throw e;
     }, 500);
 };
-exports['test sync error async fail'] = function(assert, finished) {
+exports['test sync error async fail'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
-        assert.ok(false, 'this fails asynchronously');
-        finished();
+        test.ok(false, 'this fails asynchronously');
+        test.finished();
       });
   }
 
   throw e;
 };
-exports['test async error async fail'] = function(assert, finished) {
+exports['test async error async fail'] = function(test) {
   var e = new Error();
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
-        assert.ok(false, 'this fails asynchronously');
-        finished();
+        test.ok(false, 'this fails asynchronously');
+        test.finished();
       });
   }
 
@@ -66,19 +68,19 @@ exports['test async error async fail'] = function(assert, finished) {
       throw e;
     }, 500);
 };
-exports['test sync error error again'] = function(assert) {
+exports['test sync error error again'] = function(test) {
   var e = new Error('first error');
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     throw new Error('second error');
   }
 
   throw e;
 };
-exports['test async error error again'] = function(assert, finished) {
+exports['test async error error again'] = function(test) {
   var e = new Error('first error');
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     throw new Error('second error');
   }
 
@@ -86,10 +88,10 @@ exports['test async error error again'] = function(assert, finished) {
       throw e;
     }, 500);
 };
-exports['test sync error error again async'] = function(assert, finished) {
+exports['test sync error error again async'] = function(test) {
   var e = new Error('first error');
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
         throw new Error('second error');
       });
@@ -97,10 +99,10 @@ exports['test sync error error again async'] = function(assert, finished) {
 
   throw e;
 };
-exports['test async error error again async'] = function(assert, finished) {
+exports['test async error error again async'] = function(test) {
   var e = new Error('first error');
 
-  this.uncaughtExceptionHandler = function(err) {
+  test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
         throw new Error('second error');
       });

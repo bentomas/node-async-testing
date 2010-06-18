@@ -1,25 +1,31 @@
 
-exports['test success'] = function(assert) {
-  assert.ok(true, 'This should be true');
+exports['test success'] = function(test) {
+  test.ok(true, 'This should be true');
+  test.finished();
 };
-exports['test fail'] = function(assert) {
-  assert.ok(false, 'This should be false');
+exports['test fail'] = function(test) {
+  test.ok(false, 'This should be false');
+  test.finished();
 };
-exports['test success -- numAssertionsExpected'] = function(assert) {
-  this.numAssertionsExpected = 1;
-  assert.ok(true, 'This should be true');
+exports['test success -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
+  test.ok(true, 'This should be true');
+  test.finished();
 };
-exports['test fail -- numAssertionsExpected'] = function(assert) {
-  this.numAssertionsExpected = 1;
-  assert.ok(false);
+exports['test fail -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
+  test.ok(false);
+  test.finished();
 };
-exports['test fail - not enough -- numAssertionsExpected'] = function(assert) {
-  this.numAssertionsExpected = 1;
+exports['test fail - not enough -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
+  test.finished();
 };
-exports['test fail - too many -- numAssertionsExpected'] = function(assert) {
-  this.numAssertionsExpected = 1;
-  assert.ok(true, 'This should be true');
-  assert.ok(true, 'This should be true');
+exports['test fail - too many -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
+  test.ok(true, 'This should be true');
+  test.ok(true, 'This should be true');
+  test.finished();
 };
 
 if (module == require.main) {

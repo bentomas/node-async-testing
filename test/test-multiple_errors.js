@@ -1,13 +1,13 @@
 
-exports['test async error 1'] = function(assert, finished) {
+exports['test async error 1'] = function(test) {
   process.nextTick(function() {
       throw new Error();
     });
 };
-exports['test sync error'] = function(assert, finished) {
+exports['test sync error'] = function(test) {
   throw new Error('Oooops');
 };
-exports['test async error 2'] = function(assert, finished) {
+exports['test async error 2'] = function(test) {
   setTimeout(function() {
       throw new Error();
     }, 500);

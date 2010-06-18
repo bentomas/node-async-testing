@@ -1,14 +1,19 @@
+The events that are called by `testing.runSuites` and/or `testing.runSuite`.
+These make it possible to write your own test runners and format the output
+however you like.
+
 Events
 ------
 onStart: function(numSuites)
 onDone: function(suiteResultsArray, duration)
 
-onSuiteStart: function([suiteName])  // suite name might not exist
+onSuiteStart: function([suiteName])  // carefull! suite name might not exist
 onSuiteDone: function(suiteResult)
 
-onTestStart: function(testName)  // carefull!  errors in the runner will effect the suite
-onTestDone: function(testResult)  // carefull!  errors in the runner will effect the suite
+onTestStart: function(testName)  // carefull!  errors caused here will show up in the suite errors
+onTestDone: function(testResult)  // carefull!  errors caused here will show up in the suite errors
 
+onPrematureExit: function(testNamesArray)
 
 Objects
 -------

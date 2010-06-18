@@ -1,42 +1,42 @@
 
-exports['test success'] = function(assert, finished) {
+exports['test success'] = function(test) {
   setTimeout(function() {
-      assert.ok(true, 'This should be true');
-      finished();
+      test.ok(true, 'This should be true');
+      test.finished();
     }, 500);
 };
-exports['test fail'] = function(assert, finished) {
+exports['test fail'] = function(test) {
   setTimeout(function() {
-      assert.ok(false, 'This should be false');
-      finished();
+      test.ok(false, 'This should be false');
+      test.finished();
     }, 500);
 };
-exports['test success -- numAssertionsExpected'] = function(assert, finished) {
-  this.numAssertionsExpected = 1;
+exports['test success -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
   setTimeout(function() {
-      assert.ok(true, 'This should be true');
-      finished();
+      test.ok(true, 'This should be true');
+      test.finished();
     }, 500);
 };
-exports['test fail -- numAssertionsExpected'] = function(assert, finished) {
-  this.numAssertionsExpected = 1;
+exports['test fail -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
   setTimeout(function() {
-      assert.ok(false, 'This should be false');
-      finished();
+      test.ok(false, 'This should be false');
+      test.finished();
     }, 500);
 };
-exports['test fail - not enough -- numAssertionsExpected'] = function(assert, finished) {
-  this.numAssertionsExpected = 1;
+exports['test fail - not enough -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
   setTimeout(function() {
-      finished();
+      test.finished();
     }, 500);
 };
-exports['test fail - too many -- numAssertionsExpected'] = function(assert, finished) {
-  this.numAssertionsExpected = 1;
+exports['test fail - too many -- numAssertionsExpected'] = function(test) {
+  test.numAssertions = 1;
   setTimeout(function() {
-      assert.ok(true, 'This should be true');
-      assert.ok(true, 'This should be true');
-      finished();
+      test.ok(true, 'This should be true');
+      test.ok(true, 'This should be true');
+      test.finished();
     }, 500);
 };
 

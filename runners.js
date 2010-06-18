@@ -10,52 +10,63 @@ var red   = function(str){return "\033[31m" + str + "\033[39m"}
   , bold  = function(str){return "\033[1m" + str + "\033[22m"}
   ;
 
-exports.def = function(list, options) {
-  if (typeof options != 'undefined' && options && options.constructor == Array) {
-    var args = options;
+exports.def = function(list, options, args, callback) {
+  // make sure options exist
+  if (typeof options == 'undefined' || options == null) {
     options = {};
+  }
 
-    if (!list) {
-      list = [];
+  if (typeof callback == 'undefined') {
+    if (options.constructor == Array) {
+      callback = args;
+      args = options;
+      options = {};
     }
+    else {
+      args = [];
+    }
+  }
 
-    for(var i = 2; i < args.length; i++) {
-      switch(args[i]) {
-        case "--log":
-        case "-l":
-          options.verbosity = args[i+1];
-          i++;
-          break;
-        case "--parallel":
-        case "-p":
-          options.parallel = true;
-          break;
-        case "--serial":
-        case "-s":
-          options.parallel = false;
-          break;
-        case "--test-name":
-        case "-t":
-          options.testName = args[i+1];
-          i++;
-          break;
-        case "--suite-name":
-        case "-n":
-          options.suiteName = args[i+1];
-          i++;
-          break;
-        case "--help":
-        case "-h":
-          options.help = true;
-          break;
-        default:
-          list.push(args[i]);
-      }
-    }
+  if (!list) {
+    list = [];
+  }
 
-    if( list.length < 1 ) {
-      list = ['.'];
+  for(var i = 2; i < args.length; i++) {
+    switch(args[i]) {
+      case "--log":
+      case "-l":
+        options.verbosity = args[i+1];
+        i++;
+        break;
+      case "--parallel":
+      case "-p":
+        options.parallel = true;
+        break;
+      case "--serial":
+      case "-s":
+        options.parallel = false;
+        break;
+      case "--test-name":
+      case "-t":
+        options.testName = args[i+1];
+        i++;
+        break;
+      case "--suite-name":
+      case "-n":
+        options.suiteName = args[i+1];
+        i++;
+        break;
+      case "--help":
+      case "-h":
+        options.help = true;
+        break;
+      default:
+        list.push(args[i]);
     }
+  }
+
+  if( list.length < 1 ) {
+    list = ['.'];
   }
 
   if (options.help) {
@@ -68,9 +79,6 @@ exports.def = function(list, options) {
     sys.puts('  --help, -h: this help message');
     process.exit();
   }
-
-  // make sure options exist
-  options = options || {};
 
   if (typeof options.verbosity == 'undefined') {
     options.verbosity = 1;
@@ -107,97 +115,95 @@ exports.def = function(list, options) {
         }
 
         sys.puts('');
-        if( typeof options.verbose == 'undefined' || !options.verbose ) {
-          if(options.verbosity > 0) {
-            for(var i = 0; i < tests.length; i++) {
-              var r = tests[i];
-              if (r.status == 'failure') {
-                sys.puts('  Failure: '+red(r.name));
-                var s = r.failure.stack.split("\n");
-                sys.puts('    '+ s[0].substr(16));
-                if (options.verbosity == 1) {
-                  if (s.length > 1) {
-                    sys.puts(s[1]);
-                  }
-                  if (s.length > 2) {
-                    sys.puts(s[2]);
-                  }
+        if(options.verbosity > 0) {
+          for(var i = 0; i < tests.length; i++) {
+            var r = tests[i];
+            if (r.status == 'failure') {
+              sys.puts('  Failure: '+red(r.name));
+              var s = r.failure.stack.split("\n");
+              sys.puts('    '+ s[0].substr(16));
+              if (options.verbosity == 1) {
+                if (s.length > 1) {
+                  sys.puts(s[1]);
                 }
-                else {
-                  for(var k = 1; k < s.length; k++) {
-                    sys.puts(s[k]);
-                  }
+                if (s.length > 2) {
+                  sys.puts(s[2]);
                 }
               }
-              else if (r.status == 'error') {
-                sys.puts('  Error: '+yellow(r.name));
-
-                if (r.error.message) {
-                  sys.puts('    '+r.error.message);
-                }
-                var s = r.error.stack.split("\n");
-                if (options.verbosity == 1) {
-                  if (s.length > 1) {
-                    sys.puts(s[1]);
-                  }
-                  if (s.length > 2) {
-                    sys.puts(s[2]);
-                  }
-                }
-                else {
-                  for(var k = 1; k < s.length; k++) {
-                    sys.puts(s[k]);
-                  }
-                }
-              }
-              else if (r.status == 'multiError') {
-                sys.print('  Non-specific errors: ');
-                for(var j = 0; j < r.name.length; j++) {
-                  if (j > 0) {
-                    sys.print(', ');
-                  }
-                  sys.print(yellow(r.name[j]));
-                }
-                sys.puts('');
-                for(var j = 0; j < r.errors.length; j++) {
-                  var s = r.errors[j].stack.split("\n");
-                  sys.puts('  + '+s[0]);
-                  if (options.verbosity == 1) {
-                    if (s.length > 1) {
-                      sys.puts(s[1]);
-                    }
-                    if (s.length > 2) {
-                      sys.puts(s[2]);
-                    }
-                  }
-                  else {
-                    for(var k = 1; k < s.length; k++) {
-                      sys.puts(s[k]);
-                    }
-                  }
+              else {
+                for(var k = 1; k < s.length; k++) {
+                  sys.puts(s[k]);
                 }
               }
             }
+            else if (r.status == 'error') {
+              sys.puts('  Error: '+yellow(r.name));
 
-            var total = suiteResults.numFailures+suiteResults.numErrors+suiteResults.numSuccesses;
-
-            if (suiteResults.numFailures + suiteResults.numErrors > 0) {
+              if (r.error.message) {
+                sys.puts('    '+r.error.message);
+              }
+              var s = r.error.stack.split("\n");
+              if (options.verbosity == 1) {
+                if (s.length > 1) {
+                  sys.puts(s[1]);
+                }
+                if (s.length > 2) {
+                  sys.puts(s[2]);
+                }
+              }
+              else {
+                for(var k = 1; k < s.length; k++) {
+                  sys.puts(s[k]);
+                }
+              }
+            }
+            else if (r.status == 'multiError') {
+              sys.print('  Non-specific errors: ');
+              for(var j = 0; j < r.name.length; j++) {
+                if (j > 0) {
+                  sys.print(', ');
+                }
+                sys.print(yellow(r.name[j]));
+              }
               sys.puts('');
-              sys.print(' ');
-              if (suiteResults.numFailures > 0) {
-                sys.print(' FAILURES: '+suiteResults.numFailures+'/'+total+' tests failed.');
-              }
-              if (suiteResults.numErrors > 0) {
-                sys.print(' ERRORS: '+suiteResults.numErrors+'/'+total+' tests errored.');
+              for(var j = 0; j < r.errors.length; j++) {
+                var s = r.errors[j].stack.split("\n");
+                sys.puts('  + '+s[0]);
+                if (options.verbosity == 1) {
+                  if (s.length > 1) {
+                    sys.puts(s[1]);
+                  }
+                  if (s.length > 2) {
+                    sys.puts(s[2]);
+                  }
+                }
+                else {
+                  for(var k = 1; k < s.length; k++) {
+                    sys.puts(s[k]);
+                  }
+                }
               }
             }
-            else {
-              sys.print(' '+green('OK: ')+total+' tests.');
-            }
-
-            sys.puts(' '+(suiteResults.duration/1000)+' seconds.');
-            sys.puts('');
           }
+
+          var total = suiteResults.numFailures+suiteResults.numErrors+suiteResults.numSuccesses;
+
+          if (suiteResults.numFailures + suiteResults.numErrors > 0) {
+            sys.puts('');
+            sys.print(' ');
+            if (suiteResults.numFailures > 0) {
+              sys.print(' FAILURES: '+suiteResults.numFailures+'/'+total+' tests failed.');
+            }
+            if (suiteResults.numErrors > 0) {
+              sys.print(' ERRORS: '+suiteResults.numErrors+'/'+total+' tests errored.');
+            }
+          }
+          else {
+            sys.print(' '+green('OK: ')+total+' tests.');
+          }
+
+          sys.puts(' '+(suiteResults.duration/1000)+' seconds.');
+          sys.puts('');
         }
       }
     , onTestDone: function(result) {
@@ -244,6 +250,22 @@ exports.def = function(list, options) {
           }
           sys.puts(bold(' ' + tests+(tests == 1 ? ' test' : ' total tests')+'. '+(duration/1000)+' seconds.'));
         }
+
+        if (callback) {
+          callback(allResults, duration);
+        }
+      }
+    , onPrematureExit: function(tests) {
+        sys.puts('');
+        sys.puts('Process exited.  The following test'+(tests.length == 1 ? '' : 's')+' never finished:');
+
+        sys.puts('');
+        for(var i = 0; i < tests.length; i++) {
+          sys.puts('  + '+tests[i]);
+        }
+        sys.puts('');
+
+        sys.puts('Did you forget to call test.finished()?');
       }
     }
 

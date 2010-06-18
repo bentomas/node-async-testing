@@ -1,15 +1,19 @@
 
-exports['test A'] = function(assert) {
-  assert.ok(true);
+exports['test A'] = function(test) {
+  test.ok(true);
+  test.finished();
 };
-exports['test B'] = function(assert) {
-  assert.ok(true);
+exports['test B'] = function(test) {
+  test.ok(true);
+  test.finished();
 };
-exports['test C'] = function(assert) {
-  assert.ok(true);
+exports['test C'] = function(test) {
+  test.ok(true);
+  test.finished();
 };
-exports['test D'] = function(assert) {
-  assert.ok(true);
+exports['test D'] = function(test) {
+  test.ok(true);
+  test.finished();
 };
 
 if (module == require.main) {

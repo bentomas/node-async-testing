@@ -1,13 +1,12 @@
 var assert = require('assert')
   , path = require('path')
   , fs = require('fs')
-  , sys = require('sys')
   ;
 
 var runners = require('./runners');
 exports.run = runners.def;
 
-function wrapAssert(test) {
+function addAssertionFunctions(test) {
   var assertionFunctions = [
     'ok',
     'equal',
@@ -20,10 +19,8 @@ function wrapAssert(test) {
     'doesNotThrow'
     ];
 
-  var assertWrapper = {};
-
   assertionFunctions.forEach(function(funcName) {
-    assertWrapper[funcName] = function() {
+    test.obj[funcName] = function() {
         try {
           assert[funcName].apply(null, arguments);
           test.numAssertions++;
@@ -36,8 +33,6 @@ function wrapAssert(test) {
         }
       }
     });
-
-  return assertWrapper;
 }
 
 exports.runSuite = function(obj, options) {
@@ -84,6 +79,7 @@ exports.runSuite = function(obj, options) {
 
   // add our global error listener
   process.addListener('uncaughtException', errorHandler);
+  process.addListener('exit', exitHandler);
 
   suite.startTime = new Date();
   // start the test chain
@@ -124,6 +120,7 @@ exports.runSuite = function(obj, options) {
           }
           curTest.UEHandler = h;
         }
+      , finished: function() { curTest.finish(); }
       };
 
     // notify listeners
@@ -131,19 +128,15 @@ exports.runSuite = function(obj, options) {
       options.onTestStart(curTest.name);
     }
 
+    addAssertionFunctions(curTest);
+
     try {
       // actually call the test
-      curTest.func.call(curTest.obj, wrapAssert(curTest), function() { curTest.finish() }, curTest.obj);
+      curTest.func.call(curTest.obj, curTest.obj);
     }
     catch(err) {
       // if we have an error, pass it to the error handler
       errorHandler(err);
-    }
-
-    // If the function doesn't ask for the callback function, the test is synchronous.
-    // Also make sure to not call this twice.
-    if (curTest.func.length < 2 && typeof curTest.finished == 'undefined') {
-      curTest.finish();
     }
 
     // if we are supposed to run the tests in parallel, start the next test
@@ -158,9 +151,6 @@ exports.runSuite = function(obj, options) {
     this.duration = new Date() - this.startTime;
     delete this.startTime;
 
-    // mark it as finished
-    this.finished = true;
-
     // if we had an assertion error it will be passed in
     if (failure) {
       this.failure = failure;
@@ -168,12 +158,12 @@ exports.runSuite = function(obj, options) {
     // otherwise, if they specified the number of assertions, let's make sure
     // they match up
     else {
-      if (this.obj.numAssertionsExpected && this.obj.numAssertionsExpected != this.numAssertions) {
+      if (this.obj.numAssertions && this.obj.numAssertions != this.numAssertions) {
         this.failure = new assert.AssertionError(
-           { message: 'Wrong number of assertions: ' + this.obj.numAssertionsExpected +
+           { message: 'Wrong number of assertions: ' + this.obj.numAssertions +
                       ' expected, ' + this.numAssertions + ' fired'
            , actual: this.numAssertions
-           , expected: this.obj.numAssertionsExpected
+           , expected: this.obj.numAssertions
            });
       }
     }
@@ -195,7 +185,15 @@ exports.runSuite = function(obj, options) {
     }
 
     // mark that this test has completed
-    testResults(this);
+    var formattedTest = formatTestResult(this);
+    suite.results.push(formattedTest);
+
+    // check to see if we can isolate any errors
+    checkErrors();
+
+    if (options.onTestDone) {
+      options.onTestDone(formattedTest);
+    }
 
     // check to see if we are all done
     testsMightBeDone();
@@ -259,9 +257,11 @@ exports.runSuite = function(obj, options) {
       suite.started[i].errors.push(details);
     }
 
-    // some test just completed in an error.  Call the testResults method which
-    // will look at candidates and what not to try to determine who failed
-    testResults(details);
+    // add the result to our results array
+    suite.results.push(details);
+
+    // check to see if we can isolate any errors
+    checkErrors();
 
     // if we are running tests serially, then a test just finished so we have
     // to start the next one
@@ -275,53 +275,34 @@ exports.runSuite = function(obj, options) {
     testsMightBeDone();
   }
 
-  function testResults(test) {
-    if(!test.error) {
-      var formattedTest = formatTestResult(test);
-      suite.results.push(formattedTest);
-    }
-    else {
-      suite.results.push(test);
-    }
-
-    // this isn't necessarily the best place for this, but any time a test
-    // finishes, we could learn more about errors that had multiple candidates, so
-    // loop through and see if anything has changed
+  function checkErrors() {
+    // any time a test finishes, we could learn more about errors that had
+    // multiple candidates, so loop through and see if anything has changed
     for(var i = 0; i < suite.results.length; i++) {
       if (suite.results[i].candidates && suite.results[i].candidates.length == 1) {
         // get the test
-        var t = suite.results[i].candidates[0];
+        var test = suite.results[i].candidates[0];
         // remove it from the list of started tests
         for(var j = 0; j < suite.started.length; j++) {
-          if (suite.started[j] == t) {
+          if (suite.started[j] == test) {
             suite.started.splice(j,1);
           }
         }
 
         // clean the results object a little bit
-        t.error = suite.results[i].error;
-        t.duration = t.errors[0].endTime - t.startTime;
-        delete t.errors;
-        delete t.error.candidates;
-        delete t.startTime;
-        delete t.error.endTime;
+        test.error = suite.results[i].error;
+        test.duration = test.errors[0].endTime - test.startTime;
+        delete test.errors;
+        delete test.error.candidates;
+        delete test.startTime;
+        delete test.error.endTime;
 
-        // make sure the test is finished.
-        t.finished = true;
-
-        suite.results[i] = formatTestResult(t);
+        // store the formatted result
+        suite.results[i] = formatTestResult(test);
 
         if (options.onTestDone) {
           options.onTestDone(suite.results[i]);
         }
-      }
-    }
-
-    // If the test errored it would have been handled by the above code.  We
-    // don't want to output it twice.
-    if (!test.error) {
-      if (options.onTestDone) {
-        options.onTestDone(formattedTest);
       }
     }
   }
@@ -360,6 +341,14 @@ exports.runSuite = function(obj, options) {
     }
   }
 
+  function exitHandler() {
+    if (suite.started.length > 0) {
+      if (options.onPrematureExit) {
+        options.onPrematureExit(suite.started.map(function(t) { return t.name; }));
+      }
+    }
+  }
+
   // checks to see if we are done, and if so, runs the cleanup method
   function testsMightBeDone() {
     if (suite.results.length == suite.numTests) {
@@ -370,6 +359,7 @@ exports.runSuite = function(obj, options) {
   // clean up method which notifies all listeners of what happened
   function testsDone() {
     process.removeListener('uncaughtException', errorHandler);
+    process.removeListener('exit', exitHandler);
 
     if (options.onSuiteDone) {
       var endTime = new Date();
@@ -486,7 +476,15 @@ exports.runSuites = function(list, options) {
     }
     fs.stat(file, function(err, stat) {
         if (err) {
-          throw err;
+          if (err.errno == 2) {
+            require('sys').puts('No such file or directory: '+file);
+            require('sys').puts('');
+            processNextItem();
+            return;
+          }
+          else {
+            throw err;
+          }
         }
 
         if (stat.isFile()) {
@@ -553,12 +551,7 @@ exports.runSuites = function(list, options) {
           allResults.push(results);
 
           if (options.onSuiteDone) {
-            try {
             options.onSuiteDone(results);
-            }
-            catch(err) {
-              sys.puts(err.stack);
-            }
           }
 
           process.nextTick(function() {
@@ -567,6 +560,7 @@ exports.runSuites = function(list, options) {
         }
       , onTestStart: options.onTestStart
       , onTestDone: options.onTestDone
+      , onPrematureExit: options.onPrematureExit
       }
 
     exports.runSuite(suite, itemOpts);
