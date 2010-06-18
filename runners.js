@@ -124,10 +124,10 @@ exports.def = function(list, options, args, callback) {
               sys.puts('    '+ s[0].substr(16));
               if (options.verbosity == 1) {
                 if (s.length > 1) {
-                  sys.puts(s[1]);
+                  sys.puts(s[1].replace(process.cwd(), '.'));
                 }
                 if (s.length > 2) {
-                  sys.puts(s[2]);
+                  sys.puts(s[2].replace(process.cwd(), '.'));
                 }
               }
               else {
@@ -145,10 +145,10 @@ exports.def = function(list, options, args, callback) {
               var s = r.error.stack.split("\n");
               if (options.verbosity == 1) {
                 if (s.length > 1) {
-                  sys.puts(s[1]);
+                  sys.puts(s[1].replace(process.cwd(), '.'));
                 }
                 if (s.length > 2) {
-                  sys.puts(s[2]);
+                  sys.puts(s[2].replace(process.cwd(), '.'));
                 }
               }
               else {
@@ -171,10 +171,10 @@ exports.def = function(list, options, args, callback) {
                 sys.puts('  + '+s[0]);
                 if (options.verbosity == 1) {
                   if (s.length > 1) {
-                    sys.puts(s[1]);
+                    sys.puts(s[1].replace(process.cwd(), '.'));
                   }
                   if (s.length > 2) {
-                    sys.puts(s[2]);
+                    sys.puts(s[2].replace(process.cwd(), '.'));
                   }
                 }
                 else {
