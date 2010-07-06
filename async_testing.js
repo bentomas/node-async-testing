@@ -16,7 +16,8 @@ var AssertWrapper = exports.AssertWrapper = function(test) {
     'strictEqual',
     'notStrictEqual',
     'throws',
-    'doesNotThrow'
+    'doesNotThrow',
+    'ifError'
     ];
 
   assertion_functions.forEach(function(func_name) {
