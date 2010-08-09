@@ -174,8 +174,7 @@ Use the `help` flag to see all the options:
     node mySuite.js --help
 
 **node-async-testing** also comes with a command line script that will run all
-test files in a specified directory. A test file is
-one whose name begins with `test-`. To use the script, make sure
+test files in a specified directory. To use the script, make sure
 **node-async-testing** has been installed properly and then run:
 
     node-async-test tests-directory
@@ -195,7 +194,7 @@ It is possible to write your own test runners.  See `node-async-test` or
 `runners.js` for examples or `API.markdown` for a description of the different
 events and what arguments they receive.
 
-This feature is directly inspired by Caolan McMahon's [nodeunit].  Which is
-awesome.
+This feature is directly inspired by Caolan McMahon's [nodeunit].  Which is an
+awesome library.
 
 [nodeunit]: http://github.com/caolan/nodeunit
