@@ -2,7 +2,7 @@
 
 try {
   // always check for a local copy of async_testing first
-  var testing = require('./async_testing');
+  var testing = require('../lib/async_testing');
 }
 catch(err) {
   if( err.message == "Cannot find module './async_testing'" ) {
