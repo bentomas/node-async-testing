@@ -117,7 +117,31 @@ can be run with the following command:
 
     node examples/readme.js
 
-Additionally, the you can look at the files in the `test` directory for more
+Because all tests are just functions, writing setup or teardown functions is as
+simple as writing a wrapper function which takes a test and returns a new test:
+
+    function setup(testFunc) {
+      return function newTestFunc(test) {
+        var extra1 = 1;
+        var extra2 = 2;
+        testFunc(test, extra1, extra2);
+      }
+    }
+
+    suite['wrapped test'] = setup(function(test, one, two) {
+      test.equal(1, one);
+      test.equal(2, two);
+      test.finish();
+    });
+
+**node-async-testing** comes with a convenience function for wrapping all tests
+in a suite:
+
+    require('async_testing').wrapTests(suite, setup);
+
+See `test/test-wrap_tests` for more details.
+
+Additionally, the you can look at any of the files in the `test` directory for
 examples.
 
 Running test suites

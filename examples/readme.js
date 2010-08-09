@@ -1,4 +1,5 @@
 // This file contains all the examples mentioned in the readme
+var async_testing = require('../lib/async_testing');
 
 exports['asynchronousTest'] = function(test) {
   setTimeout(function() {
@@ -33,6 +34,22 @@ exports['test catch sync error'] = function(test) {
   throw e;
 };
 
+exports['wrapped test'] = function(test, one, two) {
+  test.equal(1, one);
+  test.equal(2, two);
+  test.finish();
+};
+
+function setup(testFunc) {
+  return function newTestFunc(test) {
+    var extra1 = 1;
+    var extra2 = 2;
+    testFunc(test, extra1, extra2);
+  }
+}
+
+async_testing.wrapTests(exports, setup);
+
 if (module == require.main) {
-  require('../async_testing').run(__filename, process.ARGV);
+  async_testing.run(__filename, process.ARGV);
 }

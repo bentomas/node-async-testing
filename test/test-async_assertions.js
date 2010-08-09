@@ -18,6 +18,7 @@ exports['test success -- numAssertionsExpected'] = function(test) {
       test.finish();
     }, 500);
 };
+// test that the num assertions error doesn't override an assertion error
 exports['test fail -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
   setTimeout(function() {

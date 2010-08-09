@@ -12,6 +12,7 @@ exports['test success -- numAssertionsExpected'] = function(test) {
   test.ok(true, 'This should be true');
   test.finish();
 };
+// test that the num assertions error doesn't override an assertion error
 exports['test fail -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
   test.ok(false);
