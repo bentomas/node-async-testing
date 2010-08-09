@@ -27,7 +27,8 @@ To install using npm do this:
 
 To install by hand, the file `async_testing.js` needs to be in your Node path.  The
 easiest place to put it is in `~/.node_libraries`. To install the command line
-script, you need to put  the file `node-async-test` in your `$PATH` somewhere.
+script, you need to put  the file `bin/node-async-test.js` in your `$PATH`
+somewhere (I like to rename it to just `node-async-test`).
 
 Writing Tests
 -------------
@@ -126,12 +127,13 @@ The easiest way to run a suite is with the `run` method:
 
     require('async-testing').run(suite);
 
-The `run` command can take a test suite, a file name, a directory name or an
-array of any of those three options.
+The `run` command can take a test suite, a file name, a directory name (it
+recursively searches the directory for javascript files that start with `test-`)
+or an array of any of those three options.
 
 The recommended way to write and run test suites is by making the `exports`
 object of your module the test suite object. This way your suites can be run by
-other scripts that can do interesting things with the results.  However, you
+other scripts that can do interesting things with the results.  However, we
 still want to be able to run that suite via the `node` command. Here's how to
 accomplish all that:
 
@@ -172,7 +174,7 @@ Use the `help` flag to see all the options:
     node mySuite.js --help
 
 **node-async-testing** also comes with a command line script that will run all
-test files in a specified directory (it recursively searches). A test file is
+test files in a specified directory. A test file is
 one whose name begins with `test-`. To use the script, make sure
 **node-async-testing** has been installed properly and then run:
 
