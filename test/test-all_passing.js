@@ -17,5 +17,5 @@ exports['test D'] = function(test) {
 };
 
 if (module == require.main) {
-  require('../async_testing').run(exports, process.ARGV);
+  require('../lib/async_testing').run(__filename, process.ARGV);
 }
