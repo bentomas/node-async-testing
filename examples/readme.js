@@ -5,20 +5,20 @@ exports['asynchronousTest'] = function(test) {
     // make an assertion (these are just commonjs assertions)
     test.ok(true);
     // finish the test
-    test.finished();
+    test.finish();
   },50);
 };
 
 exports['synchronousTest'] = function(test) {
   test.ok(true);
-  test.finished();
+  test.finish();
 };
 
 exports['test assertions expected (fails)'] = function(test) {
   test.numAssertions = 3;
 
   test.ok(true);
-  test.finished();
+  test.finish();
   // this test will fail!
 }
 
@@ -27,7 +27,7 @@ exports['test catch sync error'] = function(test) {
 
   test.uncaughtExceptionHandler = function(err) {
     test.equal(e, err);
-    test.finished();
+    test.finish();
   }
 
   throw e;

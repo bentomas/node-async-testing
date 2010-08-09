@@ -1,31 +1,31 @@
 
 exports['test success'] = function(test) {
   test.ok(true, 'This should be true');
-  test.finished();
+  test.finish();
 };
 exports['test fail'] = function(test) {
   test.ok(false, 'This should be false');
-  test.finished();
+  test.finish();
 };
 exports['test success -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
   test.ok(true, 'This should be true');
-  test.finished();
+  test.finish();
 };
 exports['test fail -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
   test.ok(false);
-  test.finished();
+  test.finish();
 };
 exports['test fail - not enough -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
-  test.finished();
+  test.finish();
 };
 exports['test fail - too many -- numAssertionsExpected'] = function(test) {
   test.numAssertions = 1;
   test.ok(true, 'This should be true');
   test.ok(true, 'This should be true');
-  test.finished();
+  test.finish();
 };
 
 if (module == require.main) {

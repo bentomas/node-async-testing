@@ -3,7 +3,7 @@ exports['test catch sync error'] = function(test) {
 
   test.uncaughtExceptionHandler = function(err) {
     test.equal(e, err);
-    test.finished();
+    test.finish();
   }
 
   throw e;
@@ -13,7 +13,7 @@ exports['test catch async error'] = function(test) {
 
   test.uncaughtExceptionHandler = function(err) {
     test.equal(err, e);
-    test.finished();
+    test.finish();
   }
 
   setTimeout(function() {
@@ -25,7 +25,7 @@ exports['test sync error fail'] = function(test) {
 
   test.uncaughtExceptionHandler = function(err) {
     test.ok(false, 'this fails synchronously');
-    test.finished();
+    test.finish();
   }
 
   throw e;
@@ -35,7 +35,7 @@ exports['test async error fail'] = function(test) {
 
   test.uncaughtExceptionHandler = function(err) {
     test.ok(false, 'this fails synchronously');
-    test.finished();
+    test.finish();
   }
 
   setTimeout(function() {
@@ -48,7 +48,7 @@ exports['test sync error async fail'] = function(test) {
   test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
         test.ok(false, 'this fails asynchronously');
-        test.finished();
+        test.finish();
       });
   }
 
@@ -60,7 +60,7 @@ exports['test async error async fail'] = function(test) {
   test.uncaughtExceptionHandler = function(err) {
     process.nextTick(function() {
         test.ok(false, 'this fails asynchronously');
-        test.finished();
+        test.finish();
       });
   }
 

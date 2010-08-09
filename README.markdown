@@ -55,7 +55,7 @@ This module addresses that by
         // make an assertion (these are just commonjs assertions)
         test.ok(true);
         // finish the test
-        test.finished();
+        test.finish();
       });
     }
 
@@ -64,7 +64,7 @@ not asynchronous you still have to finish it:
 
     function synchronousTest(test) {
       test.ok(true);
-      test.finished();
+      test.finish();
     };
 
 **node-async-testing** is written for running suites of tests, not individual
@@ -76,12 +76,12 @@ tests. A test suite is just an object with tests:
           // make an assertion (these are just commonjs assertions)
           test.ok(true);
           // finish the test
-          test.finished();
+          test.finish();
         });
       },
       synchronousTest: function(test) {
         test.ok(true);
-        test.finished();
+        test.finish();
       }
     }
 
@@ -93,7 +93,7 @@ asynchronous tests where you want to be sure all callbacks get fired.
       test.numAssertions = 3;
 
       test.ok(true);
-      test.finished();
+      test.finish();
       // this test will fail!
     }
 
@@ -105,7 +105,7 @@ add an `uncaughtExceptionHandler`:
 
       test.uncaughtExceptionHandler = function(err) {
         test.equal(e, err);
-        test.finished();
+        test.finish();
       }
 
       throw e;
