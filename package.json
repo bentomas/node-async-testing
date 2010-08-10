@@ -1,6 +1,6 @@
 { "name": "async_testing"
 , "description": "A simple Node testing library."
-, "version": "0.2.0"
+, "version": "0.2.1"
 , "author": "Benjamin Thomas"
 , "main": "./index"
 , "directories": {"lib":"./lib"}

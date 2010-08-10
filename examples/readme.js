@@ -7,7 +7,7 @@ exports['asynchronousTest'] = function(test) {
     test.ok(true);
     // finish the test
     test.finish();
-  },50);
+  },500);
 };
 
 exports['synchronousTest'] = function(test) {
@@ -15,12 +15,11 @@ exports['synchronousTest'] = function(test) {
   test.finish();
 };
 
-exports['test assertions expected (fails)'] = function(test) {
-  test.numAssertions = 3;
+exports['test assertions expected'] = function(test) {
+  test.numAssertions = 1;
 
   test.ok(true);
   test.finish();
-  // this test will fail!
 }
 
 exports['test catch sync error'] = function(test) {

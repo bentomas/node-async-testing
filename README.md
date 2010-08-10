@@ -88,14 +88,13 @@ tests. A test suite is just an object with tests:
 
 If you want to be explicit about the number of assertions run in a given test,
 you can set `numAssertions` on the test. This can be very helpful in
-asynchronous tests where you want to be sure all callbacks get fired.
+asynchronous tests where you want to be sure all callbacks get fired:
 
-    suite['test assertions expected (fails)'] = function(test) {
-      test.numAssertions = 3;
+    suite['test assertions expected'] = function(test) {
+      test.numAssertions = 1;
 
       test.ok(true);
       test.finish();
-      // this test will fail!
     }
 
 If you need to make assertions about what kind of errors are thrown, you can
@@ -122,7 +121,7 @@ simple as writing a wrapper function which takes a test and returns a new test:
 
     function setup(testFunc) {
       return function newTestFunc(test) {
-        var extra1 = 1;
+        var extra1 = 1
         var extra2 = 2;
         testFunc(test, extra1, extra2);
       }
@@ -139,7 +138,7 @@ in a suite:
 
     require('async_testing').wrapTests(suite, setup);
 
-See `test/test-wrap_tests` for more details.
+See `test/test-wrap_tests.js` for more details examples.
 
 Additionally, the you can look at any of the files in the `test` directory for
 examples.
@@ -149,9 +148,9 @@ Running test suites
 
 The easiest way to run a suite is with the `run` method:
 
-    require('async-testing').run(suite);
+    require('async_testing').run(suite);
 
-The `run` command can take a test suite, a file name, a directory name (it
+The `run` method can take a test suite, a file name, a directory name (it
 recursively searches the directory for javascript files that start with `test-`)
 or an array of any of those three options.
 
@@ -174,7 +173,7 @@ were in a file called `mySuite.js`):
 
     node mySuite.js
 
-Additionally, the `run` command can be passed an array of command line arguments
+Additionally, the `run` method can be passed an array of command line arguments
 that alter how it works:
 
     exports['first test'] = function(test) { ... };
@@ -189,7 +188,7 @@ Now, you can tell the runner to run the tests in parallel:
 
     node mySuite.js --parallel
 
-Or only run a specific test:
+Or to only run a specific test:
 
     node mySuite.js --test-name "first test"
 
