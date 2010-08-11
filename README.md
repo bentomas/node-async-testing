@@ -217,7 +217,7 @@ test files in a specified directory. To use the script, make sure
 
     node-async-test tests-directory
 
-Or you can give it a specific test to run:
+Or you can give it a specific test suite to run:
 
     node-async-test tests-directory/mySuite.js
 
