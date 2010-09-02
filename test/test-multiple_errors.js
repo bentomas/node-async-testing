@@ -12,6 +12,11 @@ exports['test async error 2'] = function(test) {
       throw new Error();
     }, 500);
 };
+exports['test async error 3'] = function(test) {
+  setTimeout(function() {
+      throw new Error();
+    }, 500);
+};
 
 if (module == require.main) {
   require('../lib/async_testing').run(__filename, process.ARGV);
