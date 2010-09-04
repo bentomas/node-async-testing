@@ -248,6 +248,10 @@ launched it.  It reloads the suites from scratch each time it runs them so you
 can leave the web server running and switch back and forth between editing tests
 or code and running the tests. Very handy!
 
+\[The server is known to work in the lastest versions of Safari and Chrome. Any
+help in getting it to work in Opera, Firefox or other browesers would be much
+appreciated!\]
+
 Custom Reporting
 ----------------
 
