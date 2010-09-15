@@ -8,6 +8,7 @@ exports['test catch sync error'] = function(test) {
 
   throw e;
 };
+
 exports['test catch async error'] = function(test) {
   var e = new Error();
 
@@ -20,6 +21,7 @@ exports['test catch async error'] = function(test) {
       throw e;
     }, 500);
 };
+
 exports['test sync error fail'] = function(test) {
   var e = new Error();
 
@@ -30,6 +32,7 @@ exports['test sync error fail'] = function(test) {
 
   throw e;
 };
+
 exports['test async error fail'] = function(test) {
   var e = new Error();
 
@@ -42,6 +45,7 @@ exports['test async error fail'] = function(test) {
       throw e;
     }, 500);
 };
+
 exports['test sync error async fail'] = function(test) {
   var e = new Error();
 
@@ -52,6 +56,7 @@ exports['test sync error async fail'] = function(test) {
 
   throw e;
 };
+
 exports['test async error async fail'] = function(test) {
   var e = new Error();
 
@@ -64,6 +69,7 @@ exports['test async error async fail'] = function(test) {
       throw e;
     }, 500);
 };
+
 exports['test sync error error again'] = function(test) {
   var e = new Error('first error');
 
@@ -73,6 +79,7 @@ exports['test sync error error again'] = function(test) {
 
   throw e;
 };
+
 exports['test async error error again'] = function(test) {
   var e = new Error('first error');
 
@@ -84,6 +91,7 @@ exports['test async error error again'] = function(test) {
       throw e;
     }, 500);
 };
+
 exports['test sync error error again async'] = function(test) {
   var e = new Error('first error');
 
@@ -95,6 +103,7 @@ exports['test sync error error again async'] = function(test) {
 
   throw e;
 };
+
 exports['test async error error again async'] = function(test) {
   var e = new Error('first error');
 

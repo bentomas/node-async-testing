@@ -8,8 +8,9 @@ Goals of the project:
 + Tests should just be functions. Simple and intuitive.
 + You shouldn't have to learn new assertion functions.  Use the assertion module
   that comes with Node. If you are familiar with it you won't have any problems.
-+ Test files should be executable by Node.  No preprocessors.  If your test file
-  is called "my_test_file.js" then "node my_test_file.js" should run the tests.
++ Test files should be executable by Node.  No preprocessors or eval.  If your
+  test file is called "my_test_file.js" then "node my_test_file.js" should run
+  the tests.
 + Node is asynchronous, so testing should be too.
 + Not another Behavior Driven Development testing framework. I don't
   like specifications and what not. They only add verbosity.
@@ -20,6 +21,52 @@ Goals of the project:
 
 Feedback/suggestions encouraged!
 
+Example
+-------
+
+**test-suite.js**:
+
+    exports['asynchronous test'] = function(test) {
+      setTimeout(function() {
+        test.ok(true);
+        test.finish();
+      },500);
+    };
+
+    exports['synchronous test'] = function(test) {
+      test.ok(true);
+      test.finish();
+    };
+
+    exports['test assertions expected'] = function(test) {
+      test.numAssertions = 1;
+
+      test.ok(true);
+      test.finish();
+    }
+
+    exports['test catch async error'] = function(test) {
+      var e = new Error();
+
+      test.uncaughtExceptionHandler = function(err) {
+        test.equal(e, err);
+        test.finish();
+      }
+
+      setTimeout(function() {
+          throw e;
+        }, 500);
+    };
+
+    // if this module is the script being run, then run the tests:
+    if (module == require.main) {
+      require('async_testing').run(__filename, process.ARGV);
+    }
+
+The above file can be run on the command line with:
+
+    node test-suite.js
+
 Installing
 ----------
 
@@ -27,8 +74,8 @@ Installing
 
     npm install async_testing
 
-Writing Tests
--------------
+Detailed Overview
+-----------------
 
 The hard part of writing a test suite for asynchronous code is that when a test
 fails, you don't know which test it was that failed. Errors won't get caught by
@@ -89,7 +136,7 @@ tests. A test suite is just an object with test functions:
     }
 
 **node-async-testing** lets you be explicit about the number of assertions run
-in a given test, you can set `numAssertions` on the test object. This can be
+in a given test: set `numAssertions` on the test object. This can be
 very helpful in asynchronous tests where you want to be sure all callbacks
 get fired:
 
@@ -146,26 +193,21 @@ in a suite with a setup/teardown function:
 
     require('async_testing').wrapTests(suite, setup);
 
-See `test/test-wrap_tests.js` for more detailed examples of this in action.
+See `test/test-wrap_tests.js` for more detailed examples of wrapping in action.
+Or for that matter, check out any of the files in the `test` directory to see
+all that **node-async-testing** has to offer.
 
-Additionally, all of the examples in this README can be seen in
-`examples/readme.js` which can be run with the following command:
-
-    node examples/readme.js
-
-Also, check out any of the files in the `test` directory:
-
-    node test/*
-
-Running test suites
+Running Test Suites
 -------------------
 
-The easiest way to run a suite is with the `run` method.
+**node-async-testing** assumes you are going to have a one to one mapping
+between suites and files.  So, to run a test suite, you actually tell it to run
+the file:
 
     require('async_testing').run('test-suite.js');
 
 The `run` method can take a file name or a directory name (it
-recursively searches the directory for javascript files that start with `test-`)
+recursively searches directories for javascript files that start with `test-`)
 or an array of any combination of those two options.
 
 In order for **node-async-testing** to be able to run a file, the exports
@@ -176,8 +218,8 @@ object of the module needs to be the test suite:
     exports['second test'] = function(test) { ... };
     exports['third test'] = function(test) { ... };
 
-However, we still want to be able to run suites via the `node` command. Here's
-how to make the script executable by Node.  Some where in the file put
+We want to be able to run suites via the `node` command. Here's
+how to make a script executable by Node.  Some where in the file put
 this code:
 
     // if this module is the script being run, then run the tests:
@@ -186,12 +228,12 @@ this code:
     }
 
 That suite can now be run by executing the following on the command line (if it
-were in a file called `mySuite.js`):
+were in a file called `test-suite.js`):
 
-    node mySuite.js
+    node test-suite.js
 
 Additionally, the `run` method can be passed the `process.ARGV` array of command
-line arguments, so **node-async_testing** settings can be altered at run time:
+line arguments, so **node-async-testing** settings can be altered at run time:
 
     exports['first test'] = function(test) { ... };
     exports['second test'] = function(test) { ... };
@@ -203,15 +245,15 @@ line arguments, so **node-async_testing** settings can be altered at run time:
 
 Now, you could tell **node-async-testing** to run the tests in parallel:
 
-    node mySuite.js --parallel
+    node test-suite.js --parallel
 
 Or to only run some specific tests:
 
-    node mySuite.js --test-name "first test" --test-name "third test"
+    node test-suite.js --test-name "first test" --test-name "third test"
 
 Use the `help` flag to see all the options:
 
-    node mySuite.js --help
+    node test-suite.js --help
 
 **node-async-testing** also comes with a command line script that will run all
 test files in a specified directory. To use the script, make sure
@@ -221,36 +263,63 @@ test files in a specified directory. To use the script, make sure
 
 Or you could give it a specific file to run:
 
-    node-async-test tests-directory/mySuite.js
+    node-async-test tests-directory/test-suite.js
 
-It takes the same arguments that can be used on an individual file above.
+It takes the same arguments as can be used on an individual file above.
 Check out `node-async-test --help` for the complete list of options.
 
 The advantage of using the `node-async-test` command is that its exit status
 will output the number of failed tests.  This way you can write shell scripts
 that do different things depending on whether or not the suite was successful.
 
+If you want to organize your tests in a different manner and not have them
+organized by file you are going to have to write your own test runner. See 
+`runSuite()` in `lib/async_testing.js` for more details.
+
 Web Test Runner
 ---------------
 
 **node-async-testing** comes with a "web" test runner.  This runner launches a
-web server which can be used to run an individual or many suites.  Launch it
-with the `--web` flag:
+web server which can be used to run suites manually.  Launch it with the
+`--web` flag:
 
-    node test/mySuite.js --web
+    node test/test-suite.js --web
 
 Or
  
     node-async-test --web tests-directory
 
-Once the server is running you can run any suites you specified when you
-launched it.  It reloads the suites from scratch each time it runs them so you
-can leave the web server running and switch back and forth between editing tests
-or code and running the tests. Very handy!
+Once the server is started you can pick and choose which suites to run, and run
+them as many times as you like.  **node-async-testing** reloads the suites (and
+any code they use) from scratch each time they are run so you can leave the web
+server running and switch back and forth between editing tests or code and
+running the tests. Very handy!
 
-\[The server is known to work in the lastest versions of Safari and Chrome. Any
-help in getting it to work in Opera, Firefox or other browesers would be much
-appreciated!\]
+To use the web runner you also need to [Socket.IO][socket] and [node-webworker][webwork]:
+
+    npm install socket.io webworker
+
+\[The server is known to work in the lastest versions of Safari, Chrome and
+Firefox.  Any help in getting it to work in Opera would be much appreciated. I
+don't have means of testing in IE.\]
+
+Custom Assertion Functions
+--------------------------
+It is possible to write your own assertion functions that are fully supported
+by **node-async-testing**.  You can't just use any assert function at any time
+because **node-async-testing** needs to know which assertions go with which
+tests. As such each test is given its own unique wrapped assertion methods.  To
+add your own assertion function use the `registerAssertion()` method.
+
+    var async_testing = require('async_testing');
+    async_testing.registerAssertion('assertionName', function() { ... });
+
+    exports['test assert'] = function(test) {
+      test.assertionName();
+      test.finish();
+    }
+
+See `test/test-custom_assertions.js` for a working example.
 
 Custom Reporting
 ----------------
@@ -263,3 +332,5 @@ This feature is directly inspired by Caolan McMahon's [nodeunit].  Which is an
 awesome library.
 
 [nodeunit]: http://github.com/caolan/nodeunit
+[socket]: http://github.com/LearnBoost/Socket.IO-node
+[webwork]: http://github.com/pgriess/node-webworker

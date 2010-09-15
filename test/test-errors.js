@@ -2,6 +2,7 @@
 exports['test sync error'] = function(test) {
   throw new Error();
 };
+
 exports['test async error'] = function(test) {
   setTimeout(function() {
       throw new Error();

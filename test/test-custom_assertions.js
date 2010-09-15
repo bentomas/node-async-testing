@@ -13,6 +13,7 @@ exports['test custom assertion pass'] = function(test) {
   test.isTwo(2);
   test.finish();
 }
+
 exports['test custom assertion fail'] = function(test) {
   test.isTwo(1);
   test.finish();
