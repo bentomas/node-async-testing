@@ -247,11 +247,11 @@ line arguments, so **node-async-testing** settings can be altered at run time:
       require('async_testing').run(__filename, process.ARGV);
     }
 
-Now, you could tell **node-async-testing** to run the tests in parallel:
+Now, you can tell **node-async-testing** to run the tests in parallel:
 
     node test-suite.js --parallel
 
-Or to only run some specific tests:
+Or to only run specific tests:
 
     node test-suite.js --test-name "first test" --test-name "third test"
 
@@ -259,25 +259,21 @@ Use the `help` flag to see all the options:
 
     node test-suite.js --help
 
-**node-async-testing** also comes with a command line script that will run all
-test files in a specified directory. To use the script, make sure
-**node-async-testing** has been installed properly and then run:
+**node-async-testing** can run multiple files at once this way, because of
+`process.ARGV`:
 
-    node-async-test tests-directory
+    node test-suite.js test-suite2.js
 
-Or you could give it a specific file to run:
+For example, you can run all the tests in the `test` directory by saying:
 
-    node-async-test tests-directory/test-suite.js
+    node test/*
 
-It takes the same arguments as can be used on an individual file above.
-Check out `node-async-test --help` for the complete list of options.
-
-The advantage of using the `node-async-test` command is that its exit status
-will output the number of failed tests.  This way you can write shell scripts
-that do different things depending on whether or not the suite was successful.
+With this arrangement, **node-async-testing**'s `run` method will exit the
+process when done with the number of tests that didn't succeed. See
+`lib/running.js` for more details or if you want to disable that.
 
 If you want to organize your tests in a different manner and not have them
-organized by file you are going to have to write your own test runner. See 
+organized by file, you are going to have to write your own test runner. See 
 `runSuite()` in `lib/async_testing.js` for more details.
 
 Web Test Runner

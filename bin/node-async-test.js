@@ -1,5 +1,7 @@
 #! /usr/bin/env node
 
+console.log('node-async-test command is deprecated.\nSee http://github.com/bentomas/node-async-testing for how to run tests\n');
+
 try {
   // always check for a local copy of async_testing first
   var testing = require('../lib/async_testing');
