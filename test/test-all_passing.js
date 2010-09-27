@@ -1,22 +1,24 @@
 
-exports['test A'] = function(test) {
-  test.ok(true);
-  test.finish();
-};
+module.exports = {
+ 'test A': function(test) {
+    test.ok(true);
+    test.finish();
+  },
 
-exports['test B'] = function(test) {
-  test.ok(true);
-  test.finish();
-};
+ 'test B': function(test) {
+    test.ok(true);
+    test.finish();
+  },
 
-exports['test C'] = function(test) {
-  test.ok(true);
-  test.finish();
-};
+ 'test C': function(test) {
+    test.ok(true);
+    test.finish();
+  },
 
-exports['test D'] = function(test) {
-  test.ok(true);
-  test.finish();
+ 'test D': function(test) {
+    test.ok(true);
+    test.finish();
+  }
 };
 
 if (module == require.main) {
