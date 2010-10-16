@@ -24,7 +24,7 @@ Feedback/suggestions encouraged!
 Example
 -------
 
-**test-suite.js**:
+**examples/test-suite.js**:
 
     exports['asynchronous test'] = function(test) {
       setTimeout(function() {
@@ -65,7 +65,7 @@ Example
 
 The above file can be run on the command line with:
 
-    node test-suite.js
+    node examples/test-suite.js
 
 Installing
 ----------
@@ -166,34 +166,31 @@ maybe _it is_ what you want to happen, who am I to judge?), you can set an
         }, 500);
     };
 
-**node-async-testing** doesn't have an explicit way for writing setup or
-teardown functions, but because all tests are just functions, doing setup or
-teardown is as simple as writing a wrapper function which takes a test and
-returns a new test:
+**node-async-testing** comes with a convenience function for wrapping all tests
+in an object with setup/teardown functions. This funciton is called `wrap`:
 
-    function setup(testFunc) {
-      return function newTestFunc(test) {
-        // run set up code here...
-        var extra1 = 1
-        var extra2 = 2;
+    function setup(test, done) {
+      test.extra1 = 1
+      test.extra2 = 2;
 
-        // pass the variables we just created to the original test function
-        testFunc(test, extra1, extra2);
-      }
+      // setup functions can of course be asynchronous. when done setting up,
+      // call `done`.  This is required of setup and teardown functions.
+      done();
     }
 
-    suite['wrapped test'] = setup(function(test, one, two) {
-      test.equal(1, one);
-      test.equal(2, two);
-      test.finish();
-    });
+    var suite =
+      { 'wrapped test': function(test) {
+          test.equal(1, test.extra1);
+          test.equal(2, test.extra2);
+          test.finish();
+        }
+      };
 
-**node-async-testing** comes with a convenience function for wrapping all tests
-in a suite with a setup/teardown function:
+    // actually wrap the suite
+    require('async_testing').wrap({suite: suite, setup: setup});
 
-    require('async_testing').wrapTests(suite, setup);
+See `test/test-wrap_tests.js` for more examples of wrapping in action.
 
-See `test/test-wrap_tests.js` for more detailed examples of wrapping in action.
 Or for that matter, check out any of the files in the `test` directory to see
 all that **node-async-testing** has to offer.
 
@@ -210,13 +207,20 @@ The `run` method can take a file name or a directory name (it
 recursively searches directories for javascript files that start with `test-`)
 or an array of any combination of those two options.
 
-In order for **node-async-testing** to be able to run a file, the exports
-object of the module needs to be the test suite:
+In order for **node-async-testing** to run a _file_, the exports object of the
+file needs to be the test suite:
 
-    // create suite:
     exports['first test'] = function(test) { ... };
     exports['second test'] = function(test) { ... };
     exports['third test'] = function(test) { ... };
+
+    // or
+
+    module.exports = {
+      'first test': function(test) { ... },
+      'second test': function(test) { ... },
+      'third test': function(test) { ... }
+    };
 
 We want to be able to run suites via the `node` command. Here's
 how to make a script executable by Node.  Some where in the file put
@@ -232,7 +236,7 @@ were in a file called `test-suite.js`):
 
     node test-suite.js
 
-Additionally, the `run` method can be passed the `process.ARGV` array of command
+Or, the `run` method can be passed the `process.ARGV` array of command
 line arguments, so **node-async-testing** settings can be altered at run time:
 
     exports['first test'] = function(test) { ... };
@@ -243,11 +247,11 @@ line arguments, so **node-async-testing** settings can be altered at run time:
       require('async_testing').run(__filename, process.ARGV);
     }
 
-Now, you could tell **node-async-testing** to run the tests in parallel:
+Now, you can tell **node-async-testing** to run the tests in parallel:
 
     node test-suite.js --parallel
 
-Or to only run some specific tests:
+Or to only run specific tests:
 
     node test-suite.js --test-name "first test" --test-name "third test"
 
@@ -255,25 +259,21 @@ Use the `help` flag to see all the options:
 
     node test-suite.js --help
 
-**node-async-testing** also comes with a command line script that will run all
-test files in a specified directory. To use the script, make sure
-**node-async-testing** has been installed properly and then run:
+**node-async-testing** can run multiple files at once this way, because of
+`process.ARGV`:
 
-    node-async-test tests-directory
+    node test-suite.js test-suite2.js
 
-Or you could give it a specific file to run:
+For example, you can run all the tests in the `test` directory by saying:
 
-    node-async-test tests-directory/test-suite.js
+    node test/*
 
-It takes the same arguments as can be used on an individual file above.
-Check out `node-async-test --help` for the complete list of options.
-
-The advantage of using the `node-async-test` command is that its exit status
-will output the number of failed tests.  This way you can write shell scripts
-that do different things depending on whether or not the suite was successful.
+With this arrangement, **node-async-testing**'s `run` method will exit the
+process when done with the number of tests that didn't succeed. See
+`lib/running.js` for more details or if you want to disable that.
 
 If you want to organize your tests in a different manner and not have them
-organized by file you are going to have to write your own test runner. See 
+organized by file, you are going to have to write your own test runner. See 
 `runSuite()` in `lib/async_testing.js` for more details.
 
 Web Test Runner
@@ -289,13 +289,14 @@ Or
  
     node-async-test --web tests-directory
 
-Once the server is started you can pick and choose which suites to run, and run
-them as many times as you like.  **node-async-testing** reloads the suites (and
-any code they use) from scratch each time they are run so you can leave the web
-server running and switch back and forth between editing tests or code and
-running the tests. Very handy!
+Once the server is started, from a browser you can pick and choose which suites
+to run, and run them as many times as you like.  **node-async-testing** reloads
+the suites (and any code they use) from scratch each time they are run so you
+can leave the web server running and switch back and forth between editing tests
+or code and running the tests. Very handy!
 
-To use the web runner you also need to [Socket.IO][socket] and [node-webworker][webwork]:
+To use the web runner you also need to install [Socket.IO][socket] and
+[node-webworker][webwork]:
 
     npm install socket.io webworker
 

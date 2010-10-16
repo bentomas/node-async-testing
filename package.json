@@ -4,7 +4,6 @@
 , "author": "Benjamin Thomas"
 , "main": "./index"
 , "directories": {"lib":"./lib"}
-, "bin": { "node-async-test": "./bin/node-async-test.js" }
 , "repository":
   { "type": "git"
   , "url": "http://github.com/bentomas/node-async-testing.git"

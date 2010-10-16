@@ -1,19 +1,19 @@
-The events that are called by `testing.runSuites` and/or `testing.runSuite` make
+The events that are called by `testing.runFiles` and/or `testing.runSuite` make
 it possible to write your own test runners and format the output however you'd
-like.  See `runners.js` for example of how all these functions work.
+like.  See `lib/console-runner.js` or `lib/web-runner.js` for examples of how
+all these functions work.
 
 Events
 ------
-`onStart`: called when runSuites starts running suites.  This gets 1 argument:
+`onStart`: called when `runFiles` starts running suites.  This gets 1 argument:
 the number of suites being ran.
 
-`onDone`: called when runSuites finishes running the suites.  This gets 2
+`onDone`: called when `runFiles` finishes running the suites.  This gets 2
 arguments: an array of suite results (see below), and the duration in seconds
 that it took to run all the suites.
 
 `onSuiteStart`: called when a suite is started.  This gets 1 optional argument:
-the name of the suite.  A suite might not have name if a suite object is passed
-to `runSuites` as opposed to a file name.
+the name of the suite.  A suite might not have name.
 
 `onSuiteDone`: called when a suite finishes. This gets 1 argument: the suite
 result object for the specific suite. See below.
