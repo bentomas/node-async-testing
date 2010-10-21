@@ -1,5 +1,12 @@
 
 module.exports = {
+  'test passes': function(test) {
+    setTimeout(function() {
+        test.ok(true);
+        test.finish();
+      }, 500);
+  },
+
   'test async error 1': function(test) {
     setTimeout(function() {
         throw new Error('error 1');
