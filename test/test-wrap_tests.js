@@ -14,6 +14,9 @@ module.exports = {
           test.finish();
         }
       }
+    , suiteSetup: function(done) {
+        done();
+      }
     , setup: function setup(test, done) {
         test.ok(true, 'make sure we run the setup');
         test.one = extra1;
@@ -21,7 +24,7 @@ module.exports = {
     
         done();
       }
-    , teardown: function setup(test, done) {
+    , teardown: function teardown(test, done) {
         test.ok(true, 'make sure we run the teardown');
         test.one = extra1;
         test.two = extra2;
@@ -55,7 +58,7 @@ module.exports = {
           test.finish();
         }
       }
-    , teardown: function setup(test, done) {
+    , teardown: function teardown(test, done) {
         test.ok(true, 'make sure we run the teardown');
     
         setTimeout(done, 500);
