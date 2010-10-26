@@ -1,9 +1,17 @@
+// This test suite is for making sure that all the right functions are called
+// in the right order. We keep track of when everything is ran and then
+// output it all at the end.
+//
+// As such, you have to manually look at the quite cryptic output to make sure
+// it is doing what you want.
+
+
+
 var order = ''
-  // Which functions should be run async or sync.  Should have the numbers
-  // 1 - 7 here, but they can be in either runSync or runAsync, this gives you
-  // fine tuned control over how to run the tests.
-  , runSync = [0,1,2,3,4]
-  , runAsync = []
+  // Which functions should be run async or sync. Each slot is a different flow
+  // function and whether or not you want it to be sync or async.
+  // this gives you fine tuned control over how to run the tests.
+  , runSyncAsync = ['S', 'S', 'S', 'S', 'S']
   // specify which tests to create. P means that function should pass,
   // F means it should fail
   , tests =
@@ -83,10 +91,10 @@ function combinations(list, spot) {
     var r = [];
 
     for (var i = 0; i < right.length; i++) {
-      if (runSync.indexOf(spot) > -1) {
+      if (runSyncAsync[spot] == 'S') {
         r.push([list[0]].concat(right[i]));
       }
-      if (runAsync.indexOf(spot) > -1) {
+      else {
         r.push([list[0].toLowerCase()].concat(right[i]));
       }
     }
@@ -96,10 +104,10 @@ function combinations(list, spot) {
   else {
     var r = [];
 
-    if (runSync.indexOf(spot) > -1) {
+    if (runSyncAsync[spot] == 'S') {
       r.push(list[0]);
     }
-    if (runAsync.indexOf(spot) > -1) {
+    else {
       r.push(list[0].toLowerCase());
     }
     return  r;

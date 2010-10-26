@@ -1,6 +1,17 @@
+// This test suite is for making sure that all the right functions are called
+// in the right order. We keep track of when everything is ran and then
+// output it all at the end.
+//
+// As such, you have to manually look at the quite cryptic output to make sure
+// it is doing what you want.
+
+
+
 var async_testing = require('../lib/async_testing')
   , wrap = async_testing.wrap
   ;
+
+var async = true;
 
 var order = ''
   // specify which tests to create. P means that function should pass,
@@ -54,46 +65,91 @@ var specialKeys =
 var funcs = 
   { SS: function(prefix, key) {
       return function(d) {
-        order += prefix + key + '0\n';
-        d();
+        if (async) {
+          setTimeout(doIt, 10);
+        }
+        else {
+          doIt();
+        }
+
+        function doIt() {
+          order += prefix + key + '0\n';
+          d();
+        }
       }
     }
   , TS: function(prefix, key, state) {
       return function(t, f) {
-        order += prefix + '   ' + key + '1' + (state == 'P' ? '' : '*') + '\n';
-        if (state == 'P') {
-          f();
+        if (async) {
+          setTimeout(doIt, 10);
         }
         else {
-          t.ok(false, 'failure in 1');
+          doIt();
+        }
+
+        function doIt() {
+          order += prefix + '   ' + key + '1' + (state == 'P' ? '' : '*') + '\n';
+          if (state == 'P') {
+            f();
+          }
+          else {
+            t.ok(false, 'failure in 1');
+          }
         }
       }
     }
   , TT: function(prefix, key, state) {
       return function(t, f) {
-        order += prefix + '   ' + key + '3' + (state == 'P' ? '' : '*') + '\n';
-        if (state == 'P') {
-          f();
+        if (async) {
+          setTimeout(doIt, 10);
         }
         else {
-          t.ok(false, 'failure in 3');
+          doIt();
+        }
+
+        function doIt() {
+          order += prefix + '   ' + key + '3' + (state == 'P' ? '' : '*') + '\n';
+          if (state == 'P') {
+            f();
+          }
+          else {
+            t.ok(false, 'failure in 3');
+          }
         }
       }
     }
   , ST: function(prefix, key) {
       return function(d) {
-        order += prefix + key + '4\n';
-        d();
+        if (async) {
+          setTimeout(doIt, 10);
+        }
+        else {
+          doIt();
+        }
+
+        function doIt() {
+          order += prefix + key + '4\n';
+          d();
+        }
       }
     }
   , TEST: function(prefix, key, state) {
       return function(t, f) {
-        order += prefix + '   ' + key + '2' + (state == 'P' ? '' : '*') + '\n';
-        if (state == 'P') {
-          f();
+        if (async) {
+          setTimeout(doIt, 10);
         }
         else {
-          t.ok(false, 'failure in 2');
+          doIt();
+        }
+
+        function doIt() {
+          order += prefix + '   ' + key + '2' + (state == 'P' ? '' : '*') + '\n';
+          if (state == 'P') {
+            f();
+          }
+          else {
+            t.ok(false, 'failure in 2');
+          }
         }
       }
     }
@@ -130,7 +186,13 @@ module.exports = convert(tests, '__');
 
 
 process.on('exit', function() {
-    console.log(order);
+    var len = 0;
+    // get around weird bugs in node where I can't print large strings
+    while (len < order.length) {
+      require('util').print(order.substr(len, 200));
+      len += 200;
+    }
+    console.log('');
   });
 
 if (module == require.main) {
