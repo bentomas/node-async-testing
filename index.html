@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>node-async-testing &mdash; simple intuitive testing for node.js</title>
+    <link rel="stylesheet" href="assets/style.css">
+  </head>
+  <body>
+    <div id="container">
+      <header id="main-header">
+        <h1>node-async-testing</h1>
+        <h2>Simple, intuitive testing for node.js</h2>
+      </header>
+
+      <nav>
+        <ul>
+          <li class="current"><a href="index.html">Home</a></li>
+          <li><a href="writing-tests.html">Writing Tests</a></li>
+          <li><a href="running-tests.html">Running Tests</a></li>
+        </ul>
+      </nav>
+
+      <section id="intro">
+        <h1>Overview:</h1>
+        <p>
+        <b>node-async-testing</b> is a fast, extendable uniting testing module for
+        <a href="http://nodejs.org/">Node.js</a>. It...
+        </p>
+        
+        <ul>
+          <li>fully embraces Node's async environoment</li>
+          <li>supports parallel test execution</li>
+          <li>has true test <i>and</i> suite setup and teardown functions</li>
+          <li>
+            helps your organize your suites by allowing you to group different
+            tests together in sub-suites
+          </li>
+          <li>allows you to easily add your own custom assertion methods</li>
+          <li>let's you customize test output for your particular needs</li>
+        </ul>
+
+      </section>
+
+      <section id="opinions">
+        <h1><b>node-async-testing's</b> <del>biases</del> opinions:</h1>
+
+        <h2>Node is asynchronous, so testing should be too</h2>
+        <p>
+        This applies to everything: assertions, errors, callbacks, setup, teardown,
+        reports, and so on.
+        </p>
+
+        <h2>You should be able to run tests in parallel or serially</h2>
+        <p>
+        Running tests in parallel is much faster, but makes it impossible to
+        accurately deal with errors.
+        </p>
+
+        <h2>You should be able to test any code, and all aspects of it</h2>
+        <p>Make no assumptions about the code being tested.</p>
+
+        <h2>You shouldn't have to learn new assertion functions</h2>
+        <p>
+        The assertion module that comes with Node is great. If you are familiar with
+        it you won't have any problems, no need to learn new functions.
+        </p>
+
+        <h2>No specifications, and no natural language suites</h2>
+        <p>
+        Not another Behavior Driven Development testing framework. I don't like
+        specifications and what not. They only add verbosity. "Text X" followed
+        by a function is just right.
+        </p>
+
+        <h2>Test files should be executable by Node</h2>
+        <p>
+        No preprocessors or custom scripts.  If your test file is called
+        "my_test_file.js" then <code>node my_test_file.js</code> should run it.
+        </p>
+
+      </section>
+
+
+      <section id="installing">
+        <h1>Installing:</h1>
+      
+        <p>With npm:</p>
+
+        <div class="highlight"><pre>npm install async_testing</pre></div>
+        
+        <p>By hand:</p>
+        <div class="highlight"><pre>
+mkdir -p ~/.node_libraries
+<span class="nb">cd</span> ~/.node_libraries
+git clone --recursive git://github.com/bentomas/node-async-testing.git async_testing</pre></div>
+      </section>
+
+      <section id="getting-started">
+        <h1>Getting started:</h1>
+      
+        <p>
+        Read about <a href="writing-tests.html">writing tests and suites</a> or
+        <a href="running-tests.html">how to run your suites</a>.
+        </p>
+         
+        <p>
+        Check out <a href="http://github.com/bentomas/node-async-testing/tree/master/test/">the examples</a>.
+        I recommend looking at <a href="http://github.com/bentomas/node-async-testing/blob/master/test/test-overview.js">test/test-overview.js</a> first.
+        </p>
+
+        <p>Watch this brief screencast:</p>
+
+        <video id="demo" width="808" height="540" controls preload>
+          <source src="http://media.benjaminthomas.org/node-async-testing/screencast.m4v" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+        </video>
+      </section>
+
+    </div>
+  </body>
+</html>
