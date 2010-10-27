@@ -5,37 +5,37 @@ all these functions work.
 
 Events
 ------
-`onStart`: called when `runFiles` starts running suites.  This gets 1 argument:
-the number of suites being ran.
++ `onStart`: called when `runFiles` starts running suites.  This gets 1 argument:
+  the number of suites being ran.
 
-`onDone`: called when `runFiles` finishes running the suites.  This gets 2
-arguments: an array of suite results (see below), and the duration in seconds
-that it took to run all the suites.
++ `onDone`: called when `runFiles` finishes running the suites.  This gets 2
+  arguments: an array of suite results (see below), and the duration in seconds
+  that it took to run all the suites.
 
-`onSuiteStart`: called when a suite is started.  This gets 1 optional argument:
-the name of the suite.  A suite might not have name.
++ `onSuiteStart`: called when a suite is started.  This gets 1 optional argument:
+  the name of the suite.  A suite might not have name.
 
-`onSuiteDone`: called when a suite finishes. This gets 1 argument: the suite
-result object for the specific suite. See below.
++ `onSuiteDone`: called when a suite finishes. This gets 1 argument: the suite
+  result object for the specific suite. See below.
 
-`onTestStart`: called when a test is started. This gets 1 argument: the name of
-the test.
++ `onTestStart`: called when a test is started. This gets 1 argument: the name of
+  the test.
 
-Carefull! The test runner will think errors thrown in this function belong to
-the test suite and you'll get inaccurate results.  Basically, make sure you
-don't throw any errors in this listener.
+  Carefull! The test runner will think errors thrown in this function belong to
+  the test suite and you'll get inaccurate results.  Basically, make sure you
+  don't throw any errors in this listener.
 
-`onTestDone`: Called when a test finishes. This gets 1 argument, the test
-result object for the specific test.  See below.
++ `onTestDone`: Called when a test finishes. This gets 1 argument, the test
+  result object for the specific test.  See below.
 
-Carefull! The test runner will think errors thrown in this function belong to
-the test suite and you'll get inaccurate results.  Basically, make sure you
-don't throw any errors in this listener.
+  Carefull! The test runner will think errors thrown in this function belong to
+  the test suite and you'll get inaccurate results.  Basically, make sure you
+  don't throw any errors in this listener.
 
-`onPrematureExit`: called when the process exits and there are still tests that
-haven't finished. This occurs when people forget to finish their tests or their
-tests don't work like the expected.  This gets 1 argument: an array of the
-names of the tests that haven't finished.
++ `onPrematureExit`: called when the process exits and there are still tests that
+  haven't finished. This occurs when people forget to finish their tests or their
+  tests don't work like they expected.  This gets 1 argument: an array of the
+  names of the tests that haven't finished.
 
 Suite Result
 ------------
@@ -44,7 +44,6 @@ A suite result is an object that looks like this:
     { name: suite name (if applicable)
     , results: an array of test results for each test ran (see below)
     , duration: how long the suite took
-    , numErrors: number of errors
     , numFailures: number of failures
     , numSuccesses: number of successes
     }
@@ -61,30 +60,17 @@ success: the test completed successfully
 
     { duration: how long the test took
     , name: test name
-    , status: 'success'
     , numAssertions: number of assertions
     }
 
-failure: the test had an assertion error
+failure: the test failed in some way
 
     { duration: how long the test took
     , name: test name
-    , status: 'failure'
-    , failure: the assertion error
+    , failure: the error or array of error candidates
     }
 
-error: the test had an uncaught error
-
-    { duration: how long the test took
-    , name: test name
-    , status: 'error'
-    , error: the error
-    }
-
-multiError: this result occurs when tests are ran in parallel and it isn't
-possible to accurately figure out which errors went with which tests.
-
-    { name: [testName1, testName2, testName3]
-    , status: 'multiError'
-    , errors: [err1, err2, err3]
-    }
+If the tests are running in parallel and an error is thrown, sometimes it cannot 
+reliably be determined which test went with which error.  If that is the case
+then the 'failure' will be an array of all the errors that could have gone with
+this test.
