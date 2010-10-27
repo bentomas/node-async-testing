@@ -8,8 +8,8 @@ body {
   background: #FFF;
   box-shadow: 2px 2px 4px #666666; -moz-box-shadow: 2px 2px 4px #666666; -webkit-box-shadow: 2px 2px 4px #666666;
   margin: auto;
-  margin-top: 100px;
-  margin-bottom: 100px;
+  margin-top: 50px;
+  margin-bottom: 50px;
   padding: 0;
   width: 600px;
 }

@@ -38,7 +38,7 @@ module.exports = {
     var e = new Error();
 
     test.uncaughtExceptionHandler = function(err) {
-      test.ok(false, 'this fails asynchronously');
+      test.ok(false, 'this fails synchronously');
       test.finish();
     }
 
@@ -51,8 +51,10 @@ module.exports = {
     var e = new Error();
 
     test.uncaughtExceptionHandler = function(err) {
-      test.ok(false, 'this errors synchronously');
-      test.finish();
+      setTimeout(function() {
+        test.ok(false, 'this fails asynchronously');
+        test.finish();
+      }, 500);
     }
 
     throw e;
@@ -62,63 +64,17 @@ module.exports = {
     var e = new Error();
 
     test.uncaughtExceptionHandler = function(err) {
-      test.ok(false, 'this errors asynchronously');
-      test.finish();
-    }
-
-    setTimeout(function() {
-        throw e;
+      setTimeout(function() {
+        test.ok(false, 'this fails asynchronously');
+        test.finish();
       }, 500);
-  },
-
-  'test sync error error again': function(test) {
-    var e = new Error('first error');
-
-    test.uncaughtExceptionHandler = function(err) {
-      throw new Error('second error');
-    }
-
-    throw e;
-  },
-
-  'test async error error again': function(test) {
-    var e = new Error('first error');
-
-    test.uncaughtExceptionHandler = function(err) {
-      throw new Error('second error');
-    }
-
-    setTimeout(function() {
-        throw e;
-      }, 500);
-  },
-
-  'test sync error error again async': function(test) {
-    var e = new Error('first error');
-
-    test.uncaughtExceptionHandler = function(err) {
-      process.nextTick(function() {
-          throw new Error('second error');
-        });
-    }
-
-    throw e;
-  },
-
-  'test async error error again async': function(test) {
-    var e = new Error('first error');
-
-    test.uncaughtExceptionHandler = function(err) {
-      process.nextTick(function() {
-          throw new Error('second error');
-        });
     }
 
     setTimeout(function() {
         throw e;
       }, 500);
   }
-};
+}
 
 if (module == require.main) {
   require('../lib/async_testing').run(__filename, process.ARGV);

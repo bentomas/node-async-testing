@@ -1,22 +1,22 @@
 var sys = require('sys')
 
 module.exports = {
- 'test A': function(test) {
+  'test A': function(test) {
     test.ok(true);
     test.finish();
   },
 
- 'test B': function(test) {
+  'test B': function(test) {
     test.ok(true);
     test.finish();
   },
 
- 'test C': function(test) {
+  'test C': function(test) {
     test.ok(true);
     test.finish();
   },
 
- 'test D': function(test) {
+  'test D': function(test) {
     test.ok(true);
     test.finish();
   }
