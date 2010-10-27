@@ -33,8 +33,8 @@ run "node test/test-all_passing.js -0" \
     "node test/test-all_passing.js -1"
 
 group "all passing, multiple suites"
-run "node test/test-all_passing.js test/test-readme.js -0" \
-    "node test/test-all_passing.js test/test-readme.js -1"
+run "node test/test-all_passing.js test/test-simple.js -0" \
+    "node test/test-all_passing.js test/test-simple.js -1"
 
 group "some failing, one suite"
 run "node test/test-sync_assertions.js -0" \
