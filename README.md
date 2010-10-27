@@ -1,28 +1,15 @@
-
-                     _                                     _            _   _             
-                    | |                                   | |          | | (_)            
-     _ __   ___   __| | ___    __ _ ___ _   _ _ __   ___  | |_  ___ ___| |_ _ _ __   __ _ 
-    | '_ \ / _ \ / _` |/ _ \  / _` / __| | | | '_ \ / __| | __|/ _ | __| __| | '_ \ / _` |
-    | | | | (_) | (_| |  __/ | (_| \__ \ |_| | | | | (__  | |_|  __|__ \ |_| | | | | (_| |
-    |_| |_|\___/ \__,_|\___|  \__,_|___/\__, |_| |_|\___|  \__|\___|___/\__|_|_| |_|\__, |    
-                                         __/ |                                       __/ |
-                                        |___/                                       |___/ 
-
-       
-                            Simple, intuitive testing for node.js
-   
-----------------------------------------------------------------------------------------------
-
 node-async-testing
 ==================
 
-A simple test runner for testing asynchronous code. **node-async-testing**...
+A simple test runner for testing asynchronous code.
+
+**node-async-testing**...
 
 + fully embraces Node's async environoment
 + supports parallel test execution
 + has true test _and_ suite setup and teardown functions
-+ helps your organize your suites by allowing you to group different tests together
-  in sub-suites
++ helps your organize your suites by allowing you to group different tests
+  together in sub-suites
 + allows you to easily add your own custom assertion methods
 + let's you customize test output for your particular needs
 
