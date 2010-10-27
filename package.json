@@ -2,7 +2,7 @@
 , "description": "A simple Node testing library."
 , "version": "0.3.2"
 , "author": "Benjamin Thomas"
-, "main": "./index"
+, "main": "./lib/async_testing"
 , "directories": {"lib":"./lib"}
 , "repository":
   { "type": "git"
