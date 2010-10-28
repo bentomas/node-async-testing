@@ -12,10 +12,8 @@ async_testing.run: make it so run can take any combination of the following...
     async_testing.run(process.ARGV.slice(1), {parallel: true}) // parallel no matter what
   and so on
 
-Wrap: don't output the suiteSetup/suiteTeardown functions in the toString for a test
-
 Console Runner: readd number of completed tests back to summary in console runner
-Console Runner: are we being too redundant when 
+Console Runner: are we being too redundant when we have errors?
 
 Web Runner: checkbox for web runner to automatically run suites on window or tab focus
 Web Runner: keep track of which suites have been opened and are parallel across refreshes
