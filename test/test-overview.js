@@ -1,41 +1,46 @@
+if (module == require.main) {
+  // if this module is the script being run, then run the tests:
+  return require('../lib/async_testing').run(__filename, process.ARGV);
+}
+
 var wrap = require('../lib/async_testing').wrap; 
 
 var suiteSetupCount = 0;
 
-module.exports = {
-  'asynchronous test': function(test) {
-    setTimeout(function() {
-      // make an assertion (these are just regular assertions)
+module.exports =
+  { 'asynchronous test': function(test) {
+      setTimeout(function() {
+        // make an assertion (these are just regular assertions)
+        test.ok(true);
+        // finish the test
+        test.finish();
+      },500);
+    }
+
+  , 'synchronous test': function(test) {
       test.ok(true);
-      // finish the test
-      test.finish();
-    },500);
-  },
-
-  'synchronous test': function(test) {
-    test.ok(true);
-    test.finish();
-  },
-
-  'test assertions expected': function(test) {
-    test.numAssertions = 1;
-
-    test.ok(true);
-    test.finish();
-  },
-
-  'test catch async error': function(test) {
-    var e = new Error();
-
-    test.uncaughtExceptionHandler = function(err) {
-      test.equal(e, err);
       test.finish();
     }
 
-    setTimeout(function() {
-      throw e;
-    }, 500);
-  }
+  , 'test assertions expected': function(test) {
+      test.numAssertions = 1;
+
+      test.ok(true);
+      test.finish();
+    }
+
+  , 'test catch async error': function(test) {
+      var e = new Error();
+
+      test.uncaughtExceptionHandler = function(err) {
+        test.equal(e, err);
+        test.finish();
+      }
+
+      setTimeout(function() {
+        throw e;
+      }, 500);
+    }
 
   , 'namespace 1':
     { 'test A': function(test) {
@@ -121,8 +126,3 @@ module.exports = {
         }
       })
 };
-
-// if this module is the script being run, then run the tests:
-if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
-}
