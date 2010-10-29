@@ -30,8 +30,6 @@ Web Runner:
 Running tests (async_testing.runSuite, async_testing.runFile):
 ? consider combining suiteCompleted, suiteError, suiteExit and suiteLoadError
   all into one callback, (suiteDone)
-+ wrapped assertions should check to see if test has finished first, and if it
-  has fail indicating so
 ? test.finish can take error? so you could say do:
     `fs.readFile(test.finish)`
   to make sure that readFile doesn't error without having to write your
