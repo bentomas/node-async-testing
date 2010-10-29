@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>node-async-testing &mdash; simple intuitive testing for node.js</title>
+    <link rel="stylesheet" href="assets/style.css">
+  </head>
+  <body>
+    <div id="container">
+      <header id="main-header">
+        <h1>node-async-testing</h1>
+        <h2>Simple, intuitive testing for node.js</h2>
+      </header>
+
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li class="current"><a href="writing-tests.html">Writing Tests</a></li>
+          <li><a href="running-tests.html">Running Tests</a></li>
+        </ul>
+      </nav>
+
+      <section id="writing-test-suites">
+        <h1>Writing Test Suites</h1>
+
+        <p>
+        The hard part of writing a test suite for asynchronous code is figuring out
+        when a test is done, and feeling confident that all the code was ran.
+        </p>
+
+        <p>
+        <b>node-async-testing</b> addresses that by...
+        </p>
+
+        <ol>
+          <li>giving each test its own unique assert object. This way you know which
+            assertions correspond to which tests.
+          </li>
+          <li>allowing you to run the tests one at a time.  This way it is possible to
+            add a global exception handler to the process and know exactly which test
+            cause an error.
+          </li>
+          <li>requiring you to tell the test runner when the test is finished.  This way
+            you don't have any doubt as to whether or not an asynchronous test still
+            has code to run.
+          </li>
+          <li>allowing you to declare how many assertions should take place in a test.
+            This way you can ensure that your callbacks aren't being called too many
+            or too few times.
+          </li>
+        </ol>
+
+        <p>
+        All of the examples in this page can be seen in the
+        <a href="http://github.com/bentomas/node-async-testing/blob/master/test/test-overview.js">test/test-overview.js</a>
+        suite and can be executed by running the following command from within the
+        <b>node-async-testing</b> directory:
+        </p>
+
+        <div class="highlight"><pre>node test/test-overview.js</pre></div>
+
+        <h2>Page outline:</h2>
+        <ul class="toc">
+          <li>
+            <a href="#tests">Tests</a>
+            <ul>
+              <li><a href="#test.finish">test.finish()</a></li>
+              <li><a href="#test.numAssertions">test.numAssertions</a></li>
+              <li><a href="#test.uncaughtExceptionHandler">test.uncaughtExceptionHandler</a></li>
+              <li><a href="#assertions">Assertions</a></li>
+              <li><a href="#custom-assertions">Custom Assertions</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#suites">Suites</a>
+            <ul>
+              <li><a href="#sub-suites">Sub-suites</a></li>
+              <li><a href="#wrap">wrap()</a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section id="tests">
+        <h1 id="tests">Tests</h1>
+        <p>
+        <b>node-async-testing</b> tests are just a functions that take a &lsquo;test object&rsquo;:
+        </p>
+
+        <div class="highlight"><pre>
+<span class="kd">function</span> <span class="nx">asynchronousTest</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// make an assertion (these are just regular Node assertions)</span>
+    <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+    <span class="c1">// finish the test</span>
+    <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span></pre></div>
+
+        <p>
+        The test object is where all the action takes place. You make your assertions
+        using this object (<code>test.ok()</code>, <code>test.deepEquals()</code>,
+        etc) and use it to finish the test (<code>test.finish()</code>).  Basically,
+        all the actions that are directly related to a test use this object.
+        </p>
+
+        <p>
+        Test objects have the following properties:
+        </p>
+
+        <dl>
+          <dt id="test.finish"><code>test.finish()</code></dt>
+          <dd>
+            <p>
+            <b>node-async-testing</b> assumes all tests are asynchronous. So in
+            order for it to know that a given test has completed, you have to
+            &lsquo;finish&rsquo; the test by calling <code>test.finish()</code>.
+            This let's the test runner know that that particular test doesn't have
+            any more asynchronous code running.
+            </p>
+           
+            <p>
+            Even if a test is not asynchronous you still have to finish it:
+            </p>
+
+            <div class="highlight"><pre>
+    <span class="kd">function</span> <span class="nx">synchronousTest</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+    <span class="p">}</span></pre></div>
+
+            <p>
+            <b>Note:</b> it is important that no code from this test is ran after
+            this function is called, otherwise, <b>node-async-testing</b> will think
+            that code corresponds to a different test. Be careful!
+            </p>
+          </dd>
+
+          <dt id="test.numAssertions"><code>test.numAssertions</code></dt>
+          <dd>
+            <p>
+            <b>node-async-testing</b> lets you be explicit about the number of
+            assertions run in a given test: set <code>numAssertions</code> on the test
+            object. This can be very helpful in asynchronous tests where you want to
+            be sure all callbacks get fired:
+            </p>
+
+            <div class="highlight"><pre>
+    <span class="nx">suite</span><span class="p">[</span><span class="s1">&#39;test assertions expected&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">numAssertions</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+
+      <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+    <span class="p">}</span></pre></div>
+          </dd>
+
+          <dt id="test.uncaughtExceptionHandler"><code>test.uncaughtExceptionHandler</code></dt>
+          <dd>
+            <p>
+            <b>node-async-testing</b> lets you deal with uncaught errors.  If you
+            expect an error to be thrown asynchronously in your code somewhere (this
+            is not good practice, but sometimes when using other people's code you
+            have no choice.  Or maybe <i>it is</i> what you want to happen, who am I
+            to judge?), you can set an <code>uncaughtExceptionHandler</code> on the
+            test object:
+            </p>
+
+            <div class="highlight"><pre>
+    <span class="nx">suite</span><span class="p">[</span><span class="s1">&#39;test catch async error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">e</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">();</span>
+
+      <span class="nx">test</span><span class="p">.</span><span class="nx">uncaughtExceptionHandler</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+      <span class="p">}</span>
+
+      <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="nx">e</span><span class="p">;</span>
+        <span class="p">},</span> <span class="mi">500</span><span class="p">);</span>
+    <span class="p">};</span></pre></div>
+            
+            <p>
+            This property can only be set when running suites serially, because
+            otherwise <b>node-async-testing</b> wouldn't know for which test it
+            was catching the error.
+            </p>
+          </dd>
+        </dl>
+
+        <h2 id="assertions">Assertions</h2>
+        <p>
+        Additionally, the test object has all of the assertion functions that
+        come with the <a href="http://nodejs.org/api.html#assert-292">assert module</a>
+        bundled with Node.
+        </p>
+
+        <p>
+        These methods are bound to the test object so <b>node-async-testing</b>
+        can know which assertions correspond to which tests.
+        </p>
+
+        <dl>
+          <dt><code>test.ok(value, [message])</code></dt>
+          <dd>Tests if <b>value</b> is a true value, it is equivalent to <code>assert.equal(true, value, message);</code>.</dd>
+
+          <dt><code>test.equal(actual, expected, [message])</code></dt>
+          <dd>Tests shallow, coercive equality with the equal comparison operator ( <code>==</code> ).</dd>
+
+          <dt><code>test.notEqual(actual, expected, [message])</code></dt>
+          <dd>Tests shallow, coercive non-equality with the not equal comparison operator ( <code>!=</code> ).</dd>
+
+          <dt><code>test.deepEqual(actual, expected, [message])</code></dt>
+          <dd>Tests for deep equality.</dd>
+
+          <dt><code>test.notDeepEqual(actual, expected, [message])</code></dt>
+          <dd>Tests for any deep inequality.</dd>
+
+          <dt><code>test.strictEqual(actual, expected, [message])</code></dt>
+          <dd>Tests strict equality, as determined by the strict equality operator ( <code>===</code> )</dd>
+
+          <dt><code>test.notStrictEqual(actual, expected, [message])</code></dt>
+          <dd>Tests strict non-equality, as determined by the strict not equal operator ( <code>!==</code> )</dd>
+
+          <dt><code>test.throws(block, [error], [message])</code></dt>
+          <dd>Expects <b>block</b> to throw an error.</dd>
+
+          <dt><code>test.doesNotThrow(block, [error], [message])</code></dt>
+          <dd>Expects <b>block</b> not to throw an error.</dd>
+
+          <dt><code>test.ifError(value, [message])</code></dt>
+          <dd>Tests if <b>value</b> is not a false value, throws if it is a true value. Useful when testing the first argument, error in callbacks.</dd>
+        </dl>
+
+        <h2 id="custom-assertions">Custom assertions</h2>
+        <p>
+        Because <b>node-async-testing</b> needs to bind the assertion methods to the
+        test object, you can't just use any assertion you have lying around.  You have to
+        first register it:
+        </p>
+
+        <div class="highlight"><pre>
+<span class="kd">var</span> <span class="nx">async_testing</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">);</span>
+<span class="nx">async_testing</span><span class="p">.</span><span class="nx">registerAssertion</span><span class="p">(</span><span class="s1">&#39;customAssertion&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">});</span>
+
+<span class="nx">exports</span><span class="p">[</span><span class="s1">&#39;test assert&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">test</span><span class="p">.</span><span class="nx">customAssertion</span><span class="p">();</span>
+  <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+<span class="p">}</span></pre></div>
+
+        <p>
+        Check out
+        <a href="http://github.com/bentomas/node-async-testing/blob/master/test/test-custom_assertions.js">test/test-custom_assertions.js</a>
+        for a working example.
+        </p>
+
+      </section>
+
+      <section id="suites">
+        <h1>Suites</h1>
+        <p>
+        <b>node-async-testing</b> is written for running suites of tests, not individual
+        tests. A test suite is just an object with test functions:
+        </p>
+
+        <div class="highlight"><pre>
+<span class="kd">var</span> <span class="nx">suite</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;asynchronous test&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">},</span>
+  <span class="s1">&#39;synchronous test&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+    <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre></div>
+        
+        <h2 id="sub-suites">Sub-suites</h2>
+        <p>
+        <b>node-async-testing</b> allows you to namespace your tests by putting them
+        in a sub-suite:
+        </p>
+
+        <div class="highlight"><pre>
+<span class="kd">var</span> <span class="nx">suite</span> <span class="o">=</span>
+  <span class="p">{</span> <span class="s1">&#39;namespace 1&#39;</span><span class="o">:</span>
+    <span class="p">{</span> <span class="s1">&#39;test A&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="s1">&#39;test B&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="s1">&#39;namespace 2&#39;</span><span class="o">:</span>
+    <span class="p">{</span> <span class="s1">&#39;test A&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="s1">&#39;test B&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="s1">&#39;namespace 3&#39;</span><span class="o">:</span>
+    <span class="p">{</span> <span class="s1">&#39;test A&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="s1">&#39;test B&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>
+
+        <p>
+        Suites can be nested arbitrarily deep:
+        </p>
+
+        <div class="highlight"><pre>
+<span class="kd">var</span> <span class="nx">suite</span> <span class="o">=</span>
+  <span class="p">{</span> <span class="s1">&#39;namespace 1&#39;</span><span class="o">:</span>
+    <span class="p">{</span> <span class="s1">&#39;namespace 2&#39;</span><span class="o">:</span>
+      <span class="p">{</span> <span class="s1">&#39;namespace 3&#39;</span><span class="o">:</span>
+        <span class="p">{</span> <span class="s1">&#39;test A&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="s1">&#39;test B&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="s1">&#39;test C&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>
+
+        <h2 id="wrap"><code>wrap()</code></h2>
+        <p>
+        <b>node-async-testing</b> comes with a convenience function for wrapping all tests
+        in an object with setup/teardown functions. This function is called <code>wrap</code>
+        and it takes one argument which is an object with the following properties:
+        </p>
+
+        <dl>
+          <dt><code>suite</code></dt>
+          <dd>This property is required and should be the suite object you want to wrap.</dd>
+
+          <dt><code>setup(test, done)</code></dt>
+          <dd>
+          This function is run before every single test in the suite.  The first
+          argument is the test object for which this setup is being run. If you want
+          to pass additional data/objects to the test, you should set them on the
+          <code>test</code> object directly.  Because <code>setup</code> might need
+          to be asynchronous, you have to call the second argument, <code>done()</code>,
+          when it is finished.
+          </dd>
+
+          <dt><code>teardown(test, done)</code></dt>
+          <dd>
+          This function is run after every single test in the suite. <code>teardown</code>
+          functions are called regardless of whether or not the test succeeds or
+          fails. It gets the same arguments as <code>setup</code>.
+          </dd>
+
+          <dt><code>suiteSetup(done)</code></dt>
+          <dd>
+          This function is run <i>once</i> before any test in the suite.  Because
+          <code>suiteSetup</code> might need to be asynchronous, you have to call the
+          only argument, <code>done()</code>, when it is finished.
+          </dd>
+
+          <dt><code>suiteTeardown(done)</code></dt>
+          <dd>
+          This function is run <i>once</i> after all tests in the suite have
+          finished. <code>suiteTeardown</code>
+          functions are called regardless of whether or not the tests in the suite
+          succeed or fail. It gets the same arguments as <code>suiteSetup</code>.
+          </dd>
+        </dl>
+
+        <p>An example:</p>
+
+        <div class="highlight"><pre>
+<span class="kd">var</span> <span class="nx">wrap</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">).</span><span class="nx">wrap</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">suiteSetupCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">suite</span> <span class="o">=</span> <span class="nx">wrap</span><span class="p">(</span>
+  <span class="p">{</span> <span class="nx">suiteSetup</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">suiteSetupCount</span><span class="o">++</span><span class="p">;</span>
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="nx">setup</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">extra1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="nx">test</span><span class="p">.</span><span class="nx">extra2</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="nx">suite</span><span class="o">:</span>
+    <span class="p">{</span> <span class="s1">&#39;wrapped test 1&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">suiteSetupCount</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra1</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra2</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">,</span> <span class="s1">&#39;wrapped test 2&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">suiteSetupCount</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra1</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra2</span><span class="p">);</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// not that you need to delete these variables here, they&#39;ll get cleaned up</span>
+      <span class="c1">// automatically, we&#39;re just doing it here as an example of running code</span>
+      <span class="c1">// after some tests</span>
+      <span class="k">delete</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra1</span><span class="p">;</span>
+      <span class="k">delete</span> <span class="nx">test</span><span class="p">.</span><span class="nx">extra2</span><span class="p">;</span>
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="nx">suiteTeardown</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">delete</span> <span class="nx">suiteSetupCount</span><span class="p">;</span>
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+<span class="p">})</span></pre></div>
+        
+        <p>
+        You can use a combination of sub-suites and wrapping to provide setup/teardown
+        functions for certain tests.
+        </p>
+      </section>
+
+    </div>
+  </body>
+</html>

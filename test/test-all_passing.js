@@ -1,4 +1,6 @@
-var sys = require('sys')
+if (module == require.main) {
+  return require('../lib/async_testing').run(__filename, process.ARGV);
+}
 
 module.exports = {
   'test A': function(test) {
@@ -22,10 +24,3 @@ module.exports = {
   }
 };
 
-if (module == require.main) {
-   //require('../lib/async_testing').run(__filename, process.ARGV);
-   require('../lib/async_testing').runSuite(require(__filename),{
-   	onSuiteDone:
-   		function(report){sys.puts(sys.inspect(report));}
-   });
-}

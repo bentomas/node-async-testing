@@ -115,9 +115,9 @@ function combinations(list, spot) {
 }
 
 process.on('exit', function() {
-    console.log(order);
-  });
+  console.log(order);
+});
 
 if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
+  require('../../lib/async_testing').run(__filename, process.ARGV);
 }

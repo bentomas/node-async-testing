@@ -7,7 +7,7 @@
 
 
 
-var async_testing = require('../lib/async_testing')
+var async_testing = require('../../lib/async_testing')
   , wrap = async_testing.wrap
   ;
 
@@ -196,5 +196,5 @@ process.on('exit', function() {
   });
 
 if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
+  require('../../lib/async_testing').run(__filename, process.ARGV);
 }
