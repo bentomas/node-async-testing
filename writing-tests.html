@@ -14,7 +14,7 @@
 
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
+          <li><a href="./">Home</a></li>
           <li class="current"><a href="writing-tests.html">Writing Tests</a></li>
           <li><a href="running-tests.html">Running Tests</a></li>
         </ul>
@@ -25,7 +25,7 @@
 
         <p>
         The hard part of writing a test suite for asynchronous code is figuring out
-        when a test is done, and feeling confident that all the code was ran.
+        when a test is done, and feeling confident that all the code was run.
         </p>
 
         <p>
@@ -320,7 +320,7 @@
         <p>
         <b>node-async-testing</b> comes with a convenience function for wrapping all tests
         in an object with setup/teardown functions. This function is called <code>wrap</code>
-        and it takes one argument which is an object with the following properties:
+        and it takes one argument which is an object which can have the following properties:
         </p>
 
         <dl>
@@ -334,21 +334,21 @@
           to pass additional data/objects to the test, you should set them on the
           <code>test</code> object directly.  Because <code>setup</code> might need
           to be asynchronous, you have to call the second argument, <code>done()</code>,
-          when it is finished.
+          when it is finished.  Optional.
           </dd>
 
           <dt><code>teardown(test, done)</code></dt>
           <dd>
           This function is run after every single test in the suite. <code>teardown</code>
           functions are called regardless of whether or not the test succeeds or
-          fails. It gets the same arguments as <code>setup</code>.
+          fails. It gets the same arguments as <code>setup</code>.  Optional.
           </dd>
 
           <dt><code>suiteSetup(done)</code></dt>
           <dd>
           This function is run <i>once</i> before any test in the suite.  Because
           <code>suiteSetup</code> might need to be asynchronous, you have to call the
-          only argument, <code>done()</code>, when it is finished.
+          only argument, <code>done()</code>, when it is finished.  Optional.
           </dd>
 
           <dt><code>suiteTeardown(done)</code></dt>
@@ -357,6 +357,7 @@
           finished. <code>suiteTeardown</code>
           functions are called regardless of whether or not the tests in the suite
           succeed or fail. It gets the same arguments as <code>suiteSetup</code>.
+          Optional.
           </dd>
         </dl>
 
