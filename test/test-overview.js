@@ -1,9 +1,11 @@
+var async_testing = require('../lib/async_testing')
+  , wrap = async_testing.wrap
+  ;
+
 if (module == require.main) {
-  // if this module is the script being run, then run the tests:
-  return require('../lib/async_testing').run(__filename, process.ARGV);
+  return require('../lib/async_testing').run(process.ARGV);
 }
 
-var wrap = require('../lib/async_testing').wrap; 
 
 var suiteSetupCount = 0;
 
@@ -125,4 +127,4 @@ module.exports =
           done();
         }
       })
-};
+}

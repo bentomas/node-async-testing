@@ -1,6 +1,10 @@
-var async_testing = require('../lib/async_testing')
-  , assert = require('assert')
-  ;
+var async_testing = require('../lib/async_testing');
+
+if (module == require.main) {
+  return async_testing.run(process.ARGV);
+}
+
+var assert = require('assert');
 
 async_testing.registerAssertion('isTwo', 
   function isTwo(actual, message) {
@@ -19,8 +23,4 @@ module.exports = {
     test.isTwo(1);
     test.finish();
   }
-}
-
-if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
 }

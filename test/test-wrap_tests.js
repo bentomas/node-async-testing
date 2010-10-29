@@ -2,6 +2,10 @@ var async_testing = require('../lib/async_testing')
   , wrap = async_testing.wrap
   ;
 
+if (module == require.main) {
+  return async_testing.run(process.ARGV);
+}
+
 var extra1 = {}, extra2 = {};
 
 module.exports = {

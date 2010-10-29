@@ -1,3 +1,6 @@
+if (module == require.main) {
+  return require('../lib/async_testing').run(process.ARGV);
+}
 
 module.exports = {
   'test success': function(test) {
@@ -34,7 +37,3 @@ module.exports = {
     test.finish();
   }
 };
-
-if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
-}
