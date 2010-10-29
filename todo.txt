@@ -14,7 +14,7 @@ async_testing.run:
 
 Console Runner:
 + readd number of completed tests back to summary in console runner
-+ are we being too redundant when we have errors?
+? are we being too redundant when we have errors?
 
 Web Runner:
 + checkbox for web runner to automatically run suites on window or tab focus
@@ -50,13 +50,4 @@ Running tests (async_testing.runSuite, async_testing.runFile):
 
 Docs
 ----
-+ get a favicon for webiste, maybe success.png from web-runner?
-+ update comments in lib/testing for changes to...
-  runSuite (tests functions can be arrays)
-  runFile
-+ add note to doc for runSuite about how it should be the only thing running at
-  any given time
-+ update doc about expandFiles' return value for path, it is a module path
-+ update doc about errors while running tests
-+ document onSuiteLoadError
-+ document run's callback
++ update docs and add list of command line arguments for run and what they do
