@@ -2,7 +2,7 @@ Featueres (not sorted in order of importance
 --------------------------------------------
 async_testing.run:
 + better error handling when parsing arguments, and by better I mean, some
-+ rethink args to run's callback (make them more useful)
++ rethink args to run's callback (make them more useful)                        <----
 + help message summarizing async_testing in generateHelp
 ? allow a config file (at say ~/.node-async-testing.json) or something for
   setting default run options, so say if you want the default to have tests and
@@ -13,18 +13,18 @@ async_testing.run:
 + stop using home grown options parser and add one as a sub module
 
 Console Runner:
-+ readd number of completed tests back to summary in console runner
++ readd number of completed tests back to summary in console runner             <----
 ? are we being too redundant when we have errors?
 
 Web Runner:
 + checkbox for web runner to automatically run suites on window or tab focus
 + keep track of which suites have been opened and are parallel across refreshes
   (in a cookie)
-+ checkbox to run suites in parallel or not (right now you have to specify this
++ checkbox to run suites in parallel or not (right now you have to specify this <----
   via the command line)
 ? Instead of just show test as blank when a file changes, mention something?
 ? Show number of failures when the test is closed?
-+ only show suites that have tests we are running and only show those tests (in
++ only show suites that have tests we are running and only show those tests (in <----
   the case of the --test-name flag)
 
 Running tests (async_testing.runSuite, async_testing.runFile):
@@ -45,6 +45,9 @@ Running tests (async_testing.runSuite, async_testing.runFile):
 + improve stack traces for assertion failures (remove first line, which is just
   the wrapped assertion being called)
 + code coverage
++ readd support for catching and reporting on errors that I ripped earlier this
+  month. They screw up suiteSetup and suiteTeardown and setup and teardown, but
+  we still might be able to make it work
 
 Docs
 ----

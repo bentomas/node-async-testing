@@ -7,7 +7,7 @@ A simple test runner for testing asynchronous code.
 
 + fully embraces Node's async environoment
 + supports parallel test and suite execution
-+ has true test _and_ suite setup and teardown functions
++ has true test and suite setup and teardown functions
 + helps your organize your suites by allowing you to group different tests
   together in sub-suites
 + allows you to easily add your own custom assertion methods
