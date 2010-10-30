@@ -403,17 +403,19 @@
           <dd>Called when a test is started.
           </dd>
 
-          <dt><code>onTestDone(testResult)</code></dt>
+          <dt><code>onTestDone(status, testResult)</code></dt>
           <dd>
           Called when a test finishes. See <a href="#test-result">Test result</a>
           below.
+          <code>status</code> is one of the following:<br> <b>failure</b> or <b>success</b>.
           </dd>
 
           <dt><code>onSuiteDone(status, suiteResult)</code></dt>
           <dd>
           Called when a suite finishes. See <a href="#suite-result">Suite result</a>
-          below.  <code>status</code> is one of the following: complete, error,
-          loadError and exit.
+          below. 
+          <code>status</code> is one of the following:<br> <b>complete</b>, <b>error</b>,
+              <b>loadError</b> or <b>exit</b>.
           </dd>
         </dl>
 
@@ -424,7 +426,7 @@
         </p>
 
         <dl>
-          <dt>complete</dt>
+          <dt><b>complete</b></dt>
           <dd>
             <p>
             occures when all tests finished running, and <b>node-async-testing</b>
@@ -437,7 +439,7 @@
 }</pre></div>
           </dd>
 
-          <dt>error</dt>
+          <dt><b>error</b></dt>
           <dd>
             <p>
             occures when an uncaught error is thrown from a test and <b>node-async-testing</b>
@@ -450,7 +452,7 @@
 }</pre></div>
           </dd>
 
-          <dt>exit</dt>
+          <dt><b>exit</b></dt>
           <dd>
             <p>
             occures when the process running the suite exits and there are still tests that
@@ -462,7 +464,7 @@
 }</pre></div>
           </dd>
 
-          <dt>loadError</dt>
+          <dt><b>loadError</b></dt>
           <dd>
             <p>
             this type of result is only produced from <code>runFile</code>, and
@@ -472,22 +474,33 @@
 { stderr: what was written to &lt;stderr&gt; before the child process exited
 }</pre></div>
           </dd>
+        </dl>
 
         <h2 id="test-result">Test Result</h2>
-        <p> A test result is an object that looks like one of the following:</p>
+        <p>
+        A test result is an object that looks like one of the following, depending on
+        what the finish status of the test was:
+        </p>
 
-        <p>Success: the test completed successfully</p>
-
-        <div class="highlight"><pre>
+        <dl>
+          <dt><b>success</b></dt>
+          <dd>
+            <p>the test completed successfully</p>
+            <div class="highlight"><pre>
 { name: test name
 , numAssertions: number of assertions completed successfully
 }</pre></div>
+          </dd>
 
-        <p>Failure: the test failed in some way</p>
-        <div class="highlight"><pre>
+          <dt><b>failure</b></dt>
+          <dd>
+            <p>the test failed in some way</p>
+            <div class="highlight"><pre>
 { name: test name
 , failure: the assertion failure
 }</pre></div>
+          </dd>
+        </dl>
       </section>
     </div>
   </body>
