@@ -12,9 +12,6 @@ async_testing.run:
 ? Add new flag, which says to run everything in parallel, but if a suite fails
   in some way, don't output it's results, instead re-run the suite serially
 
-Console Runner:
-+ make sure we output suite results in the order they were given to us
-
 Web Runner:
 + only show suites that have tests we are running and only show those tests (in <----
   the case of the --test-name flag)
