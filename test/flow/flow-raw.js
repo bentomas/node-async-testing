@@ -5,7 +5,9 @@
 // As such, you have to manually look at the quite cryptic output to make sure
 // it is doing what you want.
 
-
+if (module == require.main) {
+  return require('../../lib/async_testing').run(process.ARGV, function() {/* do nothing */});
+}
 
 var order = ''
   // Which functions should be run async or sync. Each slot is a different flow
@@ -15,25 +17,43 @@ var order = ''
   // specify which tests to create. P means that function should pass,
   // F means it should fail
   , tests =
-    { A: 'PPP'
-    , B: 'FPP'
-    , C: 'PFP'
-    , D: 'PPF'
-    , E: 'FPF'
-    , F: 'PFF'
-    , G: 'PPPPP'
-    , H: 'FPPPP'
-    , I: 'PFPPP'
-    , J: 'PPFPP'
-    , K: 'PPPFP'
-    , L: 'PPPPF'
-    , M: 'FPPPF'
-    , N: 'PFPFP'
-    , O: 'PFPPF'
-    , P: 'PPFFP'
-    , Q: 'PPFPF'
-    , R: 'PPPFF'
-    };
+    { AA: 'PPP'
+    , AB: 'FPP'
+    , AC: 'PFP'
+    , AD: 'PPF'
+    , AE: 'FPF'
+    , AF: 'PFF'
+    , AG: 'PPPPP'
+    , AH: 'FPPPP'
+    , AI: 'PFPPP'
+    , AJ: 'PPFPP'
+    , AK: 'PPPFP'
+    , AL: 'PPPPF'
+    , AM: 'FPPPF'
+    , AN: 'PFPFP'
+    , AO: 'PFPPF'
+    , AP: 'PPFFP'
+    , AQ: 'PPFPF'
+    , AR: 'PPPFF'
+    , AS: 'EPP'
+    , AT: 'PEP'
+    , AU: 'PPE'
+    , AV: 'EPPPP'
+    , AW: 'PEPPP'
+    , AX: 'PPEPP'
+    , AY: 'PPPEP'
+    , AZ: 'PPPPE'
+    , BA: 'EEP'
+    , BB: 'EPE'
+    , BC: 'PEE'
+    , BD: 'EFP'
+    , BE: 'EPF'
+    , BF: 'PEF'
+    , BG: 'FEP'
+    , BH: 'FPE'
+    , BI: 'PFE'
+    }
+  ;
 
 for (var key in tests) {
   combinations(tests[key]).forEach(function(t) {
@@ -57,6 +77,22 @@ for (var key in tests) {
           setTimeout(function() {
             order += (index == 1 ? '\n' : '')+k.toLowerCase()+index;
             t.finish();
+          }, 10);
+        });
+      }
+      else if (f == 'E') {
+        name += 'error ';
+        test.push(function(t) {
+          order += (index == 1 ? '\n' : '')+k+index+'!';
+          throw new Error('error in '+index);
+        });
+      }
+      else if (f == 'e') {
+        name += 'aerror ';
+        test.push(function(t) {
+          setTimeout(function() {
+            order += (index == 1 ? '\n' : '')+k.toLowerCase()+index+'!';
+            throw new Error('error in '+index);
           }, 10);
         });
       }
@@ -91,7 +127,7 @@ function combinations(list, spot) {
     var r = [];
 
     for (var i = 0; i < right.length; i++) {
-      if (runSyncAsync[spot] == 'S') {
+      if (list[0] == 'E' || runSyncAsync[spot] == 'S') {
         r.push([list[0]].concat(right[i]));
       }
       else {
@@ -104,7 +140,7 @@ function combinations(list, spot) {
   else {
     var r = [];
 
-    if (runSyncAsync[spot] == 'S') {
+    if (list[0] == 'E' || runSyncAsync[spot] == 'S') {
       r.push(list[0]);
     }
     else {
@@ -114,10 +150,7 @@ function combinations(list, spot) {
   }
 }
 
-process.on('exit', function() {
-  console.log(order);
-});
 
-if (module == require.main) {
-  require('../../lib/async_testing').run(__filename, process.ARGV);
-}
+setTimeout(function() {
+  console.log(order);
+}, 500);

@@ -21,7 +21,7 @@ module.exports = {
 
   'test fail -- numAssertionsExpected': function(test) {
     test.numAssertions = 1;
-    test.ok(false);
+    test.ok(false, 'fail -- numAssertions expected shouldn\'t overwrite failures');
     test.finish();
   },
 

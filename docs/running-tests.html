@@ -416,7 +416,7 @@
           Called when a suite finishes. See <a href="#suite-result">Suite result</a>
           below. 
           <code>status</code> is one of the following:<br> <b>complete</b>, <b>error</b>,
-              <b>loadError</b> or <b>exit</b>.
+              <b>exit</b> or <b>loadError</b>.
           </dd>
         </dl>
 
@@ -498,7 +498,8 @@
             <p>the test failed in some way</p>
             <div class="highlight"><pre>
 { name: test name
-, failure: the assertion failure
+, failureType: 'assertion' or 'error' depending on how this failed
+, failure: the error that caused this to fail
 }</pre></div>
           </dd>
         </dl>

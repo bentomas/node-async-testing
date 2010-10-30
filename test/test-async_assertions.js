@@ -17,7 +17,7 @@ module.exports = {
       }, 500);
   },
 
-  'test success -- numAssertionsExpected': function(test) {
+  'test success -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     setTimeout(function() {
         test.ok(true, 'This should be true');
@@ -25,22 +25,22 @@ module.exports = {
       }, 500);
   },
 
-  'test fail -- numAssertionsExpected': function(test) {
+  'test fail -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     setTimeout(function() {
-        test.ok(false, 'This should be false');
+        test.ok(false, 'fail -- numAssertions expected shouldn\'t overwrite failures');
         test.finish();
       }, 500);
   },
 
-  'test fail - not enough -- numAssertionsExpected': function(test) {
+  'test fail - not enough -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     setTimeout(function() {
         test.finish();
       }, 500);
   },
 
-  'test fail - too many -- numAssertionsExpected': function(test) {
+  'test fail - too many -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     setTimeout(function() {
         test.ok(true, 'This should be true');

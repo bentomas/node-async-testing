@@ -1,9 +1,12 @@
 Featueres (not sorted in order of importance
 --------------------------------------------
 async_testing.run:
-+ better error handling when parsing arguments, and by better I mean, some
-? stop using home grown options parser and add one as a sub module?
++ better error handling when parsing command line arguments, and by better
+  I mean, any
 + help message summarizing async_testing in generateHelp
+? onTestSkipped event for when a test is skipped because a specific test was
+  specified?
+? stop using home grown options parser and add one as a sub module?
 ? allow a config file (at say ~/.node-async-testing.json) or something for
   setting default run options, so say if you want the default to have tests and
   suites be parallel you can do that.
@@ -11,29 +14,26 @@ async_testing.run:
 ? Add new flag, which says to run everything in parallel, but if a suite fails
   in some way, don't output it's results, instead re-run the suite serially
 
+Console Runner:
++ deal with long lines better (wrapping function)
+
 Web Runner:
-+ only show suites that have tests we are running and only show those tests (in <----
-  the case of the --test-name flag)
 + checkbox for web runner to automatically run suites on window or tab focus
 + keep track of which suites have been opened and are parallel across refreshes
   (in a cookie)
 + checkbox to run suites in parallel or not (right now you have to specify this <----
   via the command line)
++ improve UI for when onSuiteDone with an 'error' status happens
+? only show suites that have tests we are running and only show those tests (in <----
+  the case of the --test-name flag)
 ? Instead of just show test as blank when a file changes, mention something?
 ? Show number of failures when the test is closed?
-+ better support for onSuiteExit event.  Show which tests didn't finish and
+? better support for onSuiteExit event.  Show which tests didn't finish and
   which didn't get ran
 
 Running tests (async_testing.runSuite, async_testing.runFile):
-+ readd support for catching and reporting on errors that I ripped earlier this
-  month. They screw up suiteSetup and suiteTeardown and setup and teardown, but
-  we still might be able to make it work (v0.5)
-? test.finish can take error? so you could say do:
-    `fs.readFile(test.finish)`
-  to make sure that readFile doesn't error without having to write your
-  own callback
 + timeout for suites or tests, the easiest and most fool proof way would be to
-  just add this to, runFile and just have it kill the process after a certain
+  just add this to runFile and just have it kill the process after a certain
   amount of time.  It could look at the events it is getting from the child and
   restart the timeout every time a test finishes.  If we want to do this in
   runSuite I don't think there is anything we can do to about something like
@@ -43,7 +43,13 @@ Running tests (async_testing.runSuite, async_testing.runFile):
 + improve stack traces for assertion failures (remove first line, which is just
   the wrapped assertion being called)
 + code coverage
-? add a script for running tests? (like we used to have...)
+? test.finish can take error? so you could say do:
+    `fs.readFile(test.finish)`
+  to make sure that readFile doesn't error without having to write your
+  own callback
+? add a script for running tests? (like we used to have...).  People seem to like
+  them, and it would allow us to specify a directory not always having to specify
+  a file.
 
 Docs
 ----
