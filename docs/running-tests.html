@@ -315,7 +315,7 @@
             </p>
 
             <p>
-            Now async_testing.run can take any number of arguments, which can be any
+            <code>run</code> can take any number of arguments, which can be any
             one of:
             </p>
 
@@ -335,8 +335,9 @@
               <li>
                 <p>
                 The last argument can be a callback which will get called when all the specified
-                suites have finished running.  The callback will receive one argument, the number
-                of suites that didn't complete successfully.
+                suites have finished running.  The callback will receive one argument, an array
+                with an object for each suite, which has the name, status and <a href="#suite-result">suite result object</a>
+                for that suite.
                 </p>
                 <p>
                 If a callback is not supplied, <b>node-async-testing</b> assumes that you don't

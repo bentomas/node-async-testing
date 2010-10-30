@@ -4,7 +4,6 @@ async_testing.run:
 + better error handling when parsing arguments, and by better I mean, some
 ? stop using home grown options parser and add one as a sub module?
 + help message summarizing async_testing in generateHelp
-+ rethink args to run's callback (make them more useful)                        <----
 ? allow a config file (at say ~/.node-async-testing.json) or something for
   setting default run options, so say if you want the default to have tests and
   suites be parallel you can do that.
