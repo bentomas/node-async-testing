@@ -4,15 +4,16 @@ async_testing.run:
 + better error handling when parsing arguments, and by better I mean, some
 ? stop using home grown options parser and add one as a sub module?
 + help message summarizing async_testing in generateHelp
-
 + rethink args to run's callback (make them more useful)                        <----
-
 ? allow a config file (at say ~/.node-async-testing.json) or something for
   setting default run options, so say if you want the default to have tests and
   suites be parallel you can do that.
 ? make the default to be to run test and suites in parallel?
 ? Add new flag, which says to run everything in parallel, but if a suite fails
   in some way, don't output it's results, instead re-run the suite serially
+
+Console Runner:
++ make sure we output suite results in the order they were given to us
 
 Web Runner:
 + only show suites that have tests we are running and only show those tests (in <----
@@ -24,10 +25,10 @@ Web Runner:
   via the command line)
 ? Instead of just show test as blank when a file changes, mention something?
 ? Show number of failures when the test is closed?
++ better support for onSuiteExit event.  Show which tests didn't finish and
+  which didn't get ran
 
 Running tests (async_testing.runSuite, async_testing.runFile):
-? consider combining suiteCompleted, suiteError, suiteExit and suiteLoadError
-  all into one callback, (suiteDone)
 + readd support for catching and reporting on errors that I ripped earlier this
   month. They screw up suiteSetup and suiteTeardown and setup and teardown, but
   we still might be able to make it work (v0.5)
