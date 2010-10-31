@@ -251,15 +251,8 @@ function convert(obj, p, prefix) {
 }
 
 module.exports = convert(tests, '__');
-//console.log(require('util').inspect(module.exports, null, 3));
 
 
 setTimeout(function() {
-  var len = 0;
-  // get around weird bugs in node where I can't print large strings
-  while (len < order.length) {
-    require('util').print(order.substr(len, 200));
-    len += 200;
-  }
-  console.log('');
+  console.log(order);
 }, 2200);
