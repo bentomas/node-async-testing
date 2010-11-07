@@ -5,7 +5,9 @@
 // As such, you have to manually look at the quite cryptic output to make sure
 // it is doing what you want.
 
-
+if (module == require.main) {
+  return require('../../lib/async_testing').run(process.ARGV, function() {/* do nothing */});
+}
 
 var async_testing = require('../../lib/async_testing')
   , wrap = async_testing.wrap
@@ -38,21 +40,64 @@ var order = ''
       }
     , sE:
       { TS: 'F'
-      , sL:
+      , sF:
         { J: 'P'
         , K: 'F'
         }
       }
-    , sF:
+    , sG:
       { TT: 'F'
-      , sN:
+      , sH:
         { L: 'P'
         , M: 'F'
         }
       }
-    , sG:
+    , sI:
       { N: 'P' 
       , O: 'F'
+      }
+    , P: 'E'
+    , sJ:
+      { Q: 'E' 
+      , R: 'P' 
+      , S: 'F'
+      , sK:
+        { TS: 'E'
+        , T: 'F'
+        }
+      , sL:
+        { TT: 'E'
+        , U: 'P'
+        , V: 'F'
+        }
+      }
+    , sM:
+      { SS: 'E'
+      , sN:
+        { W: 'P'
+        , X: 'F'
+        }
+      }
+    , sO:
+      { ST: 'E'
+      , sP:
+        { Y: 'P'
+        , Z: 'F'
+        }
+      }
+    , sQ:
+      { TS: 'E'
+      , sR:
+        { A: 'P'
+        , B: 'F'
+        }
+      }
+    , sS:
+      { TT: 'E'
+      , sT:
+        { C: 'P'
+        , D: 'F'
+        }
       }
     };
 
@@ -62,8 +107,13 @@ var specialKeys =
   , TT: 'teardown'
   , ST: 'suiteTeardown'
   };
+var symbol =
+  { 'P': ''
+  , 'E': '!'
+  , 'F': '*'
+  };
 var funcs = 
-  { SS: function(prefix, key) {
+  { SS: function(prefix, key, state) {
       return function(d) {
         if (async) {
           setTimeout(doIt, 10);
@@ -73,14 +123,19 @@ var funcs =
         }
 
         function doIt() {
-          order += prefix + key + '0\n';
-          d();
+          order += prefix + key + '0' + symbol[state] + '\n';
+          if (state == 'E') {
+            throw new Error('error in 0');
+          }
+          else {
+            d();
+          }
         }
       }
     }
   , TS: function(prefix, key, state) {
       return function(t, f) {
-        if (async) {
+        if (state != 'E' && async) {
           setTimeout(doIt, 10);
         }
         else {
@@ -88,8 +143,11 @@ var funcs =
         }
 
         function doIt() {
-          order += prefix + '   ' + key + '1' + (state == 'P' ? '' : '*') + '\n';
-          if (state == 'P') {
+          order += prefix + '   ' + key + '1' + symbol[state] + '\n';
+          if (state == 'E') {
+            throw new Error('error in 1');
+          }
+          else if (state == 'P') {
             f();
           }
           else {
@@ -100,7 +158,7 @@ var funcs =
     }
   , TT: function(prefix, key, state) {
       return function(t, f) {
-        if (async) {
+        if (state != 'E' && async) {
           setTimeout(doIt, 10);
         }
         else {
@@ -108,8 +166,11 @@ var funcs =
         }
 
         function doIt() {
-          order += prefix + '   ' + key + '3' + (state == 'P' ? '' : '*') + '\n';
-          if (state == 'P') {
+          order += prefix + '   ' + key + '3' + symbol[state] + '\n';
+          if (state == 'E') {
+            throw new Error('error in 3');
+          }
+          else if (state == 'P') {
             f();
           }
           else {
@@ -118,7 +179,7 @@ var funcs =
         }
       }
     }
-  , ST: function(prefix, key) {
+  , ST: function(prefix, key, state) {
       return function(d) {
         if (async) {
           setTimeout(doIt, 10);
@@ -128,14 +189,19 @@ var funcs =
         }
 
         function doIt() {
-          order += prefix + key + '4\n';
-          d();
+          order += prefix + key + '4' + symbol[state] + '\n';
+          if (state == 'E') {
+            throw new Error('error in 4');
+          }
+          else {
+            d();
+          }
         }
       }
     }
   , TEST: function(prefix, key, state) {
       return function(t, f) {
-        if (async) {
+        if (state != 'E' && async) {
           setTimeout(doIt, 10);
         }
         else {
@@ -143,8 +209,11 @@ var funcs =
         }
 
         function doIt() {
-          order += prefix + '   ' + key + '2' + (state == 'P' ? '' : '*') + '\n';
-          if (state == 'P') {
+          order += prefix + '   ' + key + '2' + symbol[state] + '\n';
+          if (state == 'E') {
+            throw new Error('error in 2');
+          }
+          else if (state == 'P') {
             f();
           }
           else {
@@ -182,19 +251,8 @@ function convert(obj, p, prefix) {
 }
 
 module.exports = convert(tests, '__');
-//console.log(require('util').inspect(module.exports, null, 3));
 
 
-process.on('exit', function() {
-    var len = 0;
-    // get around weird bugs in node where I can't print large strings
-    while (len < order.length) {
-      require('util').print(order.substr(len, 200));
-      len += 200;
-    }
-    console.log('');
-  });
-
-if (module == require.main) {
-  require('../../lib/async_testing').run(__filename, process.ARGV);
-}
+setTimeout(function() {
+  console.log(order);
+}, 2200);

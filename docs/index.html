@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>node-async-testing &mdash; simple intuitive testing for node.js</title>
     <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" href="favicon.ico">
   </head>
   <body>
     <div id="container">
@@ -14,7 +15,7 @@
 
       <nav>
         <ul>
-          <li class="current"><a href="index.html">Home</a></li>
+          <li class="current"><a href="./">Home</a></li>
           <li><a href="writing-tests.html">Writing Tests</a></li>
           <li><a href="running-tests.html">Running Tests</a></li>
         </ul>
@@ -29,8 +30,8 @@
         
         <ul>
           <li>fully embraces Node's async environoment</li>
-          <li>supports parallel test execution</li>
-          <li>has true test <i>and</i> suite setup and teardown functions</li>
+          <li>supports parallel test and suite execution</li>
+          <li>has true test and suite setup and teardown functions</li>
           <li>
             helps your organize your suites by allowing you to group different
             tests together in sub-suites
@@ -44,7 +45,8 @@
         <ul>
           <li><a href="#opinions">node-async-testing's opinions</a></li>
           <li><a href="#installing">Installing</a></li>
-          <li><a href="#getting-started">Getting started</a></li>
+          <li><a href="#contact">Getting the source, Getting involved and Getting in touch</a></li>
+          <li><a href="#getting-started">Where to start</a></li>
         </ul>
       </section>
 
@@ -69,20 +71,21 @@
         <h2>You shouldn't have to learn new assertion functions</h2>
         <p>
         The assertion module that comes with Node is great. If you are familiar with
-        it you won't have any problems, no need to learn new functions.
+        it you won't have any problems, so no need to learn new functions (though
+        you can add your own if you want).
         </p>
 
         <h2>No specifications, and no natural language suites</h2>
         <p>
         Not another Behavior Driven Development testing framework. I don't like
-        specifications and what not. They only add verbosity. "Text X" followed
+        specifications and what not. They only add verbosity. <code>"Text X"</code> followed
         by a function is just right.
         </p>
 
         <h2>Test files should be executable by Node</h2>
         <p>
         No preprocessors or custom scripts.  If your test file is called
-        "my_test_file.js" then <code>node my_test_file.js</code> should run it.
+        <code>my_test_file.js</code> then <code>node my_test_file.js</code> should run it.
         </p>
       </section>
 
@@ -100,8 +103,30 @@ mkdir -p ~/.node_libraries
 git clone --recursive git://github.com/bentomas/node-async-testing.git async_testing</pre></div>
       </section>
 
+      <section id="contact">
+        <h1>Getting the source, Getting involved and Getting in touch:</h1>
+
+        <p>
+        The source code for <b>node-async-testing</b> is 
+        <a href="http://github.com/bentomas/node-async-testing">located on GitHub</a>.
+        Feel free to send me pull requests, or
+        <a href="http://github.com/bentomas/node-async-testing/issues">report any issues you find</a>.
+        If you are looking for something to do, I maintain
+        <a href="http://github.com/bentomas/node-async-testing/blob/master/todo.txt">a list</a> of things that
+        need to be done or things I am thinking about doing.
+        </p>
+
+        <p>
+        To get in contact with me directly, you can send me a message on GitHub or
+        <a href="mailto:benjamin@benjaminthomas.org">send me an email</a>.  Sometimes I can be
+        an awful correspondent, so don't take it personally. My best friends get the same treatment.
+        I will eventually get back to you, just sometimes it can take months.  A little
+        prodding every now and then can't hurt.
+        </p>
+      </section>
+
       <section id="getting-started">
-        <h1>Getting started:</h1>
+        <h1>Where to start:</h1>
       
         <p>
         Read about <a href="writing-tests.html">writing tests and suites</a> or

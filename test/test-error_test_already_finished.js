@@ -3,7 +3,8 @@ if (module == require.main) {
 }
 
 module.exports = {
-  'test sync error': function(test) {
-    throw new Error();
-  }
+  'test sync already finished': function(test) {
+    test.finish();
+    test.finish();
+  },
 }

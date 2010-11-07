@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>node-async-testing &mdash; simple intuitive testing for node.js</title>
     <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" href="favicon.ico">
   </head>
   <body>
     <div id="container">
@@ -14,7 +15,7 @@
 
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
+          <li><a href="./">Home</a></li>
           <li class="current"><a href="writing-tests.html">Writing Tests</a></li>
           <li><a href="running-tests.html">Running Tests</a></li>
         </ul>
@@ -25,7 +26,7 @@
 
         <p>
         The hard part of writing a test suite for asynchronous code is figuring out
-        when a test is done, and feeling confident that all the code was ran.
+        when a test is done, and feeling confident that all the code was run.
         </p>
 
         <p>
@@ -130,11 +131,39 @@
       <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
     <span class="p">}</span></pre></div>
 
-            <p>
-            <b>Note:</b> it is important that no code from this test is ran after
+            <h2>Tip:</h2>
+            <p> It is important that no code from this test is ran after
             this function is called, otherwise, <b>node-async-testing</b> will think
             that code corresponds to a different test. Be careful!
             </p>
+
+            <p>
+            If <code>test.finish()</code> is called more than once, or an assertion is made after <code>finish()</code>
+            has already been called, an error will be thrown.  These features help catch test
+            errors.  Use these to your advantage. For example, at the beginning of an asynchronous
+            callback make an assertion! If the test has already finished (the callback is being called
+            when it isn't supposed to be) then the assertion will catch that the test has already finished
+            and prevent the callback from running any code that can interfere with other tests. Example:
+            </p>
+
+            <div class="highlight"><pre>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span>
+  <span class="p">{</span> <span class="s1">&#39;okay&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="cm">/* run code */</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">,</span> <span class="s1">&#39;GOOD PRACTICE!&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span> <span class="c1">// make sure test isn&#39;t already finished</span>
+        
+        <span class="cm">/* run code */</span>
+
+        <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>
           </dd>
 
           <dt id="test.numAssertions"><code>test.numAssertions</code></dt>
@@ -153,6 +182,13 @@
       <span class="nx">test</span><span class="p">.</span><span class="nx">ok</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
       <span class="nx">test</span><span class="p">.</span><span class="nx">finish</span><span class="p">();</span>
     <span class="p">}</span></pre></div>
+            <p>
+            If you are testing asynchronous code, I <i>highly</i> recommend using <code>test.numAssertions</code>.
+            <b>node-async-testing</b> depends on <code>test.finish()</code> to tell it when a test is finished,
+            so if code is run after <code>finish()</code> was called you will get innacurate test results.  Use
+            <code>numAssertions</code> to be sure all your callbacks are called <i>and</i> that they aren't called
+            too many times.
+            </p>
           </dd>
 
           <dt id="test.uncaughtExceptionHandler"><code>test.uncaughtExceptionHandler</code></dt>
@@ -320,7 +356,7 @@
         <p>
         <b>node-async-testing</b> comes with a convenience function for wrapping all tests
         in an object with setup/teardown functions. This function is called <code>wrap</code>
-        and it takes one argument which is an object with the following properties:
+        and it takes one argument which is an object which can have the following properties:
         </p>
 
         <dl>
@@ -334,21 +370,21 @@
           to pass additional data/objects to the test, you should set them on the
           <code>test</code> object directly.  Because <code>setup</code> might need
           to be asynchronous, you have to call the second argument, <code>done()</code>,
-          when it is finished.
+          when it is finished.  Optional.
           </dd>
 
           <dt><code>teardown(test, done)</code></dt>
           <dd>
           This function is run after every single test in the suite. <code>teardown</code>
           functions are called regardless of whether or not the test succeeds or
-          fails. It gets the same arguments as <code>setup</code>.
+          fails. It gets the same arguments as <code>setup</code>.  Optional.
           </dd>
 
           <dt><code>suiteSetup(done)</code></dt>
           <dd>
           This function is run <i>once</i> before any test in the suite.  Because
           <code>suiteSetup</code> might need to be asynchronous, you have to call the
-          only argument, <code>done()</code>, when it is finished.
+          only argument, <code>done()</code>, when it is finished.  Optional.
           </dd>
 
           <dt><code>suiteTeardown(done)</code></dt>
@@ -357,6 +393,7 @@
           finished. <code>suiteTeardown</code>
           functions are called regardless of whether or not the tests in the suite
           succeed or fail. It gets the same arguments as <code>suiteSetup</code>.
+          Optional.
           </dd>
         </dl>
 

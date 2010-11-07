@@ -1,3 +1,6 @@
+if (module == require.main) {
+  return require('../lib/async_testing').run(process.ARGV);
+}
 
 module.exports = {
   'test success': function(test) {
@@ -18,7 +21,7 @@ module.exports = {
 
   'test fail -- numAssertionsExpected': function(test) {
     test.numAssertions = 1;
-    test.ok(false);
+    test.ok(false, 'fail -- numAssertions expected shouldn\'t overwrite failures');
     test.finish();
   },
 
@@ -34,7 +37,3 @@ module.exports = {
     test.finish();
   }
 };
-
-if (module == require.main) {
-  require('../lib/async_testing').run(__filename, process.ARGV);
-}

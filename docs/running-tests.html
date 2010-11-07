@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>node-async-testing &mdash; simple intuitive testing for node.js</title>
     <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" href="favicon.ico">
   </head>
   <body>
     <div id="container">
@@ -14,7 +15,7 @@
 
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
+          <li><a href="./">Home</a></li>
           <li><a href="writing-tests.html">Writing Tests</a></li>
           <li class="current"><a href="running-tests.html">Running Tests</a></li>
         </ul>
@@ -25,7 +26,7 @@
 
         <p>
         <b>node-async-testing</b> includes two different means of running suites:
-        A simple, streamlined interface for running suite files and a low-level API
+        A simple, recommended interface for running suite files and a low-level API
         (which is used by the previous method) which gives you fine-grained control.
         </p>
 
@@ -50,7 +51,7 @@
         <div class="highlight"><pre>require<span class="o">(</span><span class="s1">&#39;async_testing&#39;</span><span class="o">)</span>.run<span class="o">(</span><span class="s1">&#39;test-suite.js&#39;</span><span class="o">)</span>;</pre></div>
 
         <p>
-        The <code>run</code> method can take a file name or a directory name (it
+        The <code>run</code> function can take a file name or a directory name (it
         recursively searches directories for javascript files that start with <code>test-</code>)
         or an array of any combination of those two options.
         </p>
@@ -75,14 +76,14 @@
         
         <p>
         To make a file easy to execute with the <code>node</code> command, we need
-        how to make our file run the suite when it is the script being ran.  Some where
-        in the file we put this code:
+        to make our file run the suite when it is the script being ran.  Some where
+        in the file we put this code (I like to put it at the very top):
         </p>
 
         <div class="highlight"><pre>
 <span class="c1">// if this module is the script being run, then run the tests:</span>
 <span class="k">if</span> <span class="p">(</span><span class="nx">module</span> <span class="o">===</span> <span class="nx">require</span><span class="p">.</span><span class="nx">main</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">).</span><span class="nx">run</span><span class="p">(</span><span class="nx">__filename</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">).</span><span class="nx">run</span><span class="p">(</span><span class="nx">__filename</span><span class="p">);</span>
 <span class="p">}</span></pre></div>
 
         <p>
@@ -93,19 +94,20 @@
         <div class="highlight"><pre>node <span class="nb">test</span>-suite.js</pre></div>
 
         <p>
-        The <code>run</code> method can also be passed the <code>process.ARGV</code>
+        The <code>run</code> function can also be passed the <code>process.ARGV</code>
         array of command line arguments, so <b>node-async-testing</b> settings can
         be altered at run time:
         </p>
 
         <div class="highlight"><pre>
+<span class="k">if</span> <span class="p">(</span><span class="nx">module</span> <span class="o">===</span> <span class="nx">require</span><span class="p">.</span><span class="nx">main</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">).</span><span class="nx">run</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">ARGV</span><span class="p">);</span>
+<span class="p">}</span>
+
 <span class="nx">exports</span><span class="p">[</span><span class="s1">&#39;first test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">};</span>
 <span class="nx">exports</span><span class="p">[</span><span class="s1">&#39;second test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">};</span>
 <span class="nx">exports</span><span class="p">[</span><span class="s1">&#39;third test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">};</span>
-
-<span class="k">if</span> <span class="p">(</span><span class="nx">module</span> <span class="o">===</span> <span class="nx">require</span><span class="p">.</span><span class="nx">main</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async_testing&#39;</span><span class="p">).</span><span class="nx">run</span><span class="p">(</span><span class="nx">__filename</span><span class="p">,</span> <span class="nx">process</span><span class="p">.</span><span class="nx">ARGV</span><span class="p">);</span>
-<span class="p">}</span></pre></div>
+</pre></div>
 
         <p>
         Now, you can tell <b>node-async-testing</b> to run the tests in parallel:
@@ -161,12 +163,10 @@
 
         <p>
         To use the web runner you also need to install
-        <a href="http://github.com/LearnBoost/Socket.IO-node">Socket.IO</a>
-        and
-        <a href="http://github.com/pgriess/node-webworker">node-webworker</a>:
+        <a href="http://github.com/LearnBoost/Socket.IO-node">Socket.IO</a>.
         </p>
 
-        <div class="highlight"><pre>npm install socket.io webworker</pre></div>
+        <div class="highlight"><pre>npm install socket.io</pre></div>
         
         <p>
         [The server is known to work in the lastest versions of Safari, Chrome and
@@ -183,13 +183,15 @@
         </p>
         
         <p>
-        <b>node-async-testing</b> comes with the following methods for running suites
+        <b>node-async-testing</b> comes with the following functions for running suites
         and test runners:
         </p>
 
         <ul>
           <li><a href="#runSuite">runSuite()</a></li>
+          <li><a href="#runFile">runFile()</a></li>
           <li><a href="#expandFiles">expandFiles()</a></li>
+          <li><a href="#run">run()</a></li>
           <li><a href="#registerRunner">registerRunner()</a></li>
         </ul>
 
@@ -233,8 +235,36 @@
               </dd>
             </dl>
 
-            In addition to those properties, any of the options in the
+            <p>
+            In addition to those properties, the options in the
             <a href="#running-events">events callbacks</a> section are supported.
+            </p>
+
+            <p>
+            <code>runSuite</code> adds a listener to the process for uncaught exceptions,
+            and as such, there should be no other code running while <code>runSuite</code>
+            is doing its thing, otherwise the other code could interfere with the 
+            suite being ran.
+            </p>
+          </dd>
+
+          <dt id="runFile"><code>runFile(suitePath, options)</code></dt>
+          <dd>
+          <p>
+          The <code>runFile</code> function is similar to <code>runSuite</code> except instead of
+          running the suite in the main process, it opens up a child process and runs it
+          there. The benefits of this are that it is able to report on syntax errors, and
+          also be run while other suites are running.
+          </p>
+          <p>
+          The first argument is a module path to the suite for Node's
+          <code>require()</code> function.
+          </p>
+          <p>
+          The second argument is an object with options for running the suite.  It is practically
+          the same as the second argument for <code>runSuite</code>, except it has one for additional
+          event callback.  See the <a href="#running-events">events callbacks</a> section for
+          the full list.
           </dd>
 
           <dt id="expandFiles"><code>expandFiles(list, [filter], callback)</code></dt>
@@ -271,8 +301,74 @@
               <dt><code>name</code></dt>
               <dd>This is the file name that was passed in.</dd>
               <dt><code>path</code></dt>
-              <dd>This is an absolute path to the file.</dd>
+              <dd>This is an absolute module path to the file that can be <code>require()</code>ed.</dd>
             </dl>
+          </dd>
+
+          <dt id="run"><code>run()</code></dt>
+          <dd>
+            <p>
+            The <code>run</code> functions is talked about at length in the
+            <a href="#suite-files">Running Suite Files</a> section. It handles
+            outputing the results of suites for you, so you don't have to worry about it.
+            <b>node-async-testing</b> comes with two built-in runners, one for consoles and one
+            for web browsers.
+            </p>
+
+            <p>
+            <code>run</code> can take any number of arguments, which can be any
+            one of:
+            </p>
+
+            <ul>
+              <li>
+              A string, the name of a file to run.  The exports object of the file should be
+              a suite object.
+              </li>
+              <li>
+              An array of command line arguments, like <code>process.ARGV</code>.
+              </li>
+              <li>
+              An options object, for manipulating the options for the function directly.  The
+              options you can set here correspond directly to the ones you can set in via the 
+              command line.
+              </li>
+              <li>
+                <p>
+                The last argument can be a callback which will get called when all the specified
+                suites have finished running.  The callback will receive one argument, an array
+                with an object for each suite, which has the name, status and <a href="#suite-result">suite result object</a>
+                for that suite.
+                </p>
+                <p>
+                If a callback is not supplied, <b>node-async-testing</b> assumes that you don't
+                want to do anything after the suites have completed, so the <code>run</code>
+                function creates its own callback which exits the process and sets the exit
+                code to the number of suites that didn't complete successfully.
+                </p>
+              </li>
+            </ul>
+
+
+            <p>
+            The order matters, latter settings override earlier ones. Here are some examples:
+            </p>
+
+            <p>Run a file:</p>
+            <div class="highlight"><pre>async_testing.run<span class="o">(<span class="s1">&#39;myFile.js&#39;</span><span class="o">)</span>;</pre></div>
+
+            <p>Change options:</p>
+            <div class="highlight"><pre>async_testing.run<span class="o">({</span>parallel: <span class="nb">true</span><span class="o">}</span>, <span class="s1">&#39;myFile.js&#39;</span><span class="o">)</span>;</pre></div>
+
+
+            <p>Use command line arguments:</p>
+            <div class="highlight"><pre>async_testing.run<span class="o">(</span>process.ARGV<span class="o">)</span>;</pre></div>
+
+            <p>Use command line arguments with defaults:</p>
+            <div class="highlight"><pre>async_testing.run<span class="o">({</span>parallel: <span class="nb">true</span><span class="o">}</span>, process.ARGV<span class="o">)</span>;</pre></div>
+
+            <p>Overwrite command line arguments:</p>
+            <div class="highlight"><pre>async_testing.run<span class="o">(</span>process.ARGV, <span class="o">{</span>parallel: <span class="nb">true</span><span class="o">})</span>;</pre></div>
           </dd>
 
           <dt id="registerRunner"><code>registerRunner(modulePath, [default])</code></dt>
@@ -280,7 +376,8 @@
             <p>
             Use this function to add your own custom runners to <b>node-async-testing</b>.
             See <a href="http://github.com/bentomas/node-async-testing/blob/master/lib/console-runner.js">lib/console-runner.js</a>
-            for an example of how to write a runner.
+            or <a href="http://github.com/bentomas/node-async-testing/blob/master/lib/web-runner.js">lib/web-runner.js</a>
+            for examples of how to write a runner.
             </p>
             <p>
             The first argument is the path to the runner which you are registering.
@@ -288,13 +385,14 @@
             default runner.
             </p>
           </dd>
+
         </dl>
       </section>
 
       <section id="running-events">
         <h1>Description of event callbacks</h1>
         <p>
-        The <code>runSuite</code> method can be given event callbacks for outputing
+        The <code>runSuite</code> and <code>runFile</code> functions can be given event callbacks for outputing
         the results of the tests.  Using these callbacks it is possible to write your
         own test runners and format the output however you'd like.  These callbacks
         are not for manipulating tests, but purely for reporting.
@@ -303,73 +401,109 @@
         <h2>Events</h2>
 
         <dl>
-          <dt><code>onSuiteStart([suiteName])</code></dt>
-          <dd>Called when a suite is started. A suite might not
-          have name, depending how it is ran.
-          </dd>
-
-          <dt><code>onSuiteDone(suiteResult)</code></dt>
-          <dd>
-          Called when a suite finishes. See <a href="#suite-result">Suite result</a>
-          below.
-          </dd>
-
           <dt><code>onTestStart(testName)</code></dt>
           <dd>Called when a test is started.
           </dd>
 
-          <dt><code>onTestDone(testResult)</code></dt>
+          <dt><code>onTestDone(status, testResult)</code></dt>
           <dd>
           Called when a test finishes. See <a href="#test-result">Test result</a>
           below.
+          <code>status</code> is one of the following:<br> <b>failure</b> or <b>success</b>.
           </dd>
 
-          <dt><code>onError(err, testNames)</code></dt>
+          <dt><code>onSuiteDone(status, suiteResult)</code></dt>
           <dd>
-          Called when an uncaught error is thrown from a test.  The first argument is
-          the error, the second argument is an array of the names of the tests that
-          could have thrown it.
-          </dd>
-
-          <dt><code>onPrematureExit(testNames)</code></dt>
-          <dd>
-          Called when the process exits and there are still tests that haven't
-          finished. This occurs when people forget to finish their tests or their
-          tests don't work like they expected.  This gets one argument: an array of
-          the names of the tests that haven't finished.
+          Called when a suite finishes. See <a href="#suite-result">Suite result</a>
+          below. 
+          <code>status</code> is one of the following:<br> <b>complete</b>, <b>error</b>,
+              <b>exit</b> or <b>loadError</b>.
           </dd>
         </dl>
 
         <h2 id="suite-result">Suite Result</h2>
-        <p>A suite result is an object that has the following properties:</p>
+        <p>
+        A suite result is an object that looks like one of the following, depending
+        on what the finish status of the suite was:
+        </p>
 
         <dl>
-          <dt><code>name</code></dt>
-          <dd>suite name (if applicable)</dd>
-          <dt><code>results</code></dt>
-          <dd>an Array of <a href="#test-results">test results</a> for each test that completed</dd>
-          <dt><code>numFailures</code></dt>
-          <dd>the number of tests that failed</dd>
-          <dt><code>numSuccesses</code></dt>
-          <dd>the number of tests that passed</dd>
+          <dt><b>complete</b></dt>
+          <dd>
+            <p>
+            occures when all tests finished running, and <b>node-async-testing</b>
+            was able to accurately determine how each one finished.
+            </p>
+            <div class="highlight"><pre>
+{ tests: an Array of <a href="#test-results">test results</a> for each test that completed
+, numFailures: the number of tests that failed
+, numSuccesses: the number of tests that passed
+}</pre></div>
+          </dd>
+
+          <dt><b>error</b></dt>
+          <dd>
+            <p>
+            occures when an uncaught error is thrown from a test and <b>node-async-testing</b>
+            can't determine which test caused it.  When this happens, <b>node-async-testing</b>
+            stops running the suite and exits the process.
+            </p>
+            <div class="highlight"><pre>
+{ error: the error object that was thrown
+, tests: an Array of the names of each test that could have caused the error
+}</pre></div>
+          </dd>
+
+          <dt><b>exit</b></dt>
+          <dd>
+            <p>
+            occures when the process running the suite exits and there are still tests that
+            haven't finished. This occurs when people forget to finish their tests or their
+            tests don't work like they expected.
+            </p>
+            <div class="highlight"><pre>
+{ tests: an Array of the names of each test that didn't finish
+}</pre></div>
+          </dd>
+
+          <dt><b>loadError</b></dt>
+          <dd>
+            <p>
+            this type of result is only produced from <code>runFile</code>, and
+            occures when the child process can't load the suite.
+            </p>
+            <div class="highlight"><pre>
+{ stderr: what was written to &lt;stderr&gt; before the child process exited
+}</pre></div>
+          </dd>
         </dl>
 
-
         <h2 id="test-result">Test Result</h2>
-        <p> A test result is an object that looks like one of the following:</p>
+        <p>
+        A test result is an object that looks like one of the following, depending on
+        what the finish status of the test was:
+        </p>
 
-        <p>Success: the test completed successfully</p>
-
-        <div class="highlight"><pre>
+        <dl>
+          <dt><b>success</b></dt>
+          <dd>
+            <p>the test completed successfully</p>
+            <div class="highlight"><pre>
 { name: test name
 , numAssertions: number of assertions completed successfully
 }</pre></div>
+          </dd>
 
-        <p>Failure: the test failed in some way</p>
-        <div class="highlight"><pre>
+          <dt><b>failure</b></dt>
+          <dd>
+            <p>the test failed in some way</p>
+            <div class="highlight"><pre>
 { name: test name
-, failure: the assertion failure
+, failureType: 'assertion' or 'error' depending on how this failed
+, failure: the error that caused this to fail
 }</pre></div>
+          </dd>
+        </dl>
       </section>
     </div>
   </body>
