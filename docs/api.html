@@ -1,0 +1,94 @@
+<h1>module: async_testing</h1>
+
+<h2>method: runSuite (testSuite,opts)</h2>
+
+<p><code>testSuite</code> is a test module for example <code>runSuite (require('./test/simpleTest'),opts)</code>
+each property in the object should be a test. A test is just a method which takes one argument <code>(test)</code> 
+and then make assertions by calling <code>test.ok(true)</code> etc. and eventually <code>test.finish()</code>
+making an assertion after <code>test.finish()</code> or calling <code>test.finish()</code> twice results in a 
+testAlreadyFinished error. not calling <code>test.finish()</code> at all is a an error as well. (see onSuiteDone({'0','exit',...)</p>
+
+<p>Available configuration options:
+ *
++ parallel: boolean, for whether or not the tests should be run in parallel or serially.  Obviously, parallel is faster, but it doesn't give as accurate error reporting
++testName: string or array of strings, the name of a test to be ran
++name:     string, the name of the suite being ran
++ onTestStart
++ onTestDone
++ onSuiteDone</p>
+
+<p>example:</p>
+
+<pre>
+      { name: 'string'
+      , testName: [array of test names to run]
+      , onTestStart: function (test) {}
+      , onTestDone: function (status,test) {}
+      , onSuiteDone: function (status,report) {}
+      }
+</pre>
+
+<h3>callback arguments: onSuiteDone (status,report)</h3>
+
+<p>status may be:</p>
+
+<ul>
+<li><em>complete</em> : valid result, success or failure</li>
+<li><em>exit</em> : some tests did not call <code>test.finish()</code></li>
+<li><em>loadError</em> : an error occured while loading the test, i.e. a syntax error</li>
+<li><em>error</em> : the test threw an error. </li>
+</ul>
+
+<p>currently the report differs for each status</p>
+
+<ul>
+<li>complete </li>
+</ul>
+
+<pre>
+    {tests: //list of tests
+      [
+        { name: [name of test]
+        , numAssertions: [number of Assertions in test]
+        , failure: [error which caused failure] // only if this test failed, or errored.
+        , failureType: ['assertion' or 'error']
+        }
+      ]
+    }
+</pre>
+
+<ul>
+<li>exit [list of tests which did not finish]</li>
+<li>loadError [error message (string)]</li>
+<li>error </li>
+</ul>
+
+<pre>
+    { err: errorObject
+    , tests: [list of names of tests which where running when err error occured]
+    }
+    //usually an error is caught by the test and it's registered as a failure.
+    //sometimes a test throws an error asyncronously, and async_testing doesn't 
+    //know which test it came from.
+</pre>
+
+<h3>callback arguments: onTestStart (test)</h3>
+
+<ul>
+<li>test: name of the test which has started.</li>
+</ul>
+
+<h3>callback arguments: onTestDone (status,test)</h3>
+
+<ul>
+<li>status : 'success', or 'failure'</li>
+<li>report:</li>
+</ul>
+
+<pre>
+    { name: [name of test]
+    , numAssertions: [number of Assertions in test]
+    , failure: [error which caused failure] // only if this test failed, or errored.
+    , failureType: ['assertion' or 'error']
+    }
+</pre>
