@@ -3,7 +3,8 @@
 //check that runSuite callbacks are executed in order.
   var expected = require('./examples/expected_results')
     , subtree = require('async_testing/lib/subtree')
-    , asynct = require('async_testing')
+//    , asynct = require('async_testing')
+    , asynct = require('async_testing/lib/child_http')
 
 //var testing = require('async_testing/lib/testing')
   , inspect = require('util').inspect
@@ -37,7 +38,6 @@ function checkCallbacks (test, filename,expected){
   }
   function testDone(status,report){
     var testName = report.name
-    
     
     console.log("  ...testDone: " + report.name + " -> " + status)
     test.ok(testName,'testName must be non null')
