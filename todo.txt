@@ -55,3 +55,4 @@ Docs
 ----
 + update docs and add list of command line arguments for run and what they do
 + add note about contributing/contacting
+

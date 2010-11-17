@@ -14,5 +14,12 @@ catch(err) {
   }
 }
 
+exports.test = function (test){
+  test.ok(false,"this should not be called!")
+}
+process.ARGV.shift() //node
+process.ARGV.shift() // this file... if i leave this in it tried to run this file as a test, which goes into infinite loop and doesn't exit.
+process.ARGV.unshift('node')
+
 testing.run(process.ARGV);
 
