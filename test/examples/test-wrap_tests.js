@@ -1,4 +1,4 @@
-var async_testing = require('../lib/async_testing')
+var async_testing = require('async_testing')
   , wrap = async_testing.wrap
   ;
 
@@ -77,7 +77,6 @@ wrap( { suite: module.exports
           done();
         }
       });
-
 
 
 if (module == require.main) {

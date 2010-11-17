@@ -13,24 +13,24 @@ module.exports = {
     test.finish();
   },
 
-  'test success -- numAssertionsExpected': function(test) {
+  'test success -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     test.ok(true, 'This should be true');
     test.finish();
   },
 
-  'test fail -- numAssertionsExpected': function(test) {
+  'test fail -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     test.ok(false, 'fail -- numAssertions expected shouldn\'t overwrite failures');
     test.finish();
   },
 
-  'test fail - not enough -- numAssertionsExpected': function(test) {
+  'test fail - not enough -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     test.finish();
   },
 
-  'test fail - too many -- numAssertionsExpected': function(test) {
+  'test fail - too many -- numAssertions expected': function(test) {
     test.numAssertions = 1;
     test.ok(true, 'This should be true');
     test.ok(true, 'This should be true');
