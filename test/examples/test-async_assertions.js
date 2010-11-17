@@ -12,6 +12,7 @@ module.exports = {
 
   'test fail': function(test) {
     setTimeout(function() {
+//        console.log("sdfhlasflasdjflasjdkasdhfklasdhfod"
         test.ok(false, 'This should be false');
         test.finish();
       }, 500);

@@ -5,43 +5,35 @@ if (module == require.main) {
 
   var expected = require('./examples/expected_results')
 
-/*runTest = function (test,testName){
-  var expected = expected[testName]
-    , filename = expected[testName].file
-    return runTest(test,filname,expected)
-}*/
-
-var MetaTest = require('meta_test')
-, subtree = require('meta_test/subtree')
+//var MetaTest = require('meta_test')
+, subtree = require('async_testing/lib/subtree')
 , inspect = require('util').inspect
+, asynct = require('async_testing')
 
 function runTest (test,filename,expected){
-  var m = MetaTest()
+//  var m = MetaTest()
   
-  m.run(filename,{onSuiteDone: suiteDone})
+//  m.run(filename,{onSuiteDone: suiteDone})
+      console.log("test started: " + filename)
+    asynct.runFile(filename,{onSuiteDone: suiteDone})
   
   function suiteDone(status,report){
-//      console.log("test : " + inspect(test))
-      console.log("expected: ")
-      console.log(inspect(expected))
-      console.log("report: ")
-      console.log(inspect(report))
+      console.log("...test done: " + filename)
       subtree.assert_subtree(expected,report)
       test.finish();
-  } 
-
+  }
 }
+
 
   for (i in expected.expected){
     (function (j){
       exports[j] = function (test){
+       // var tests = expected.expected[j].tests.map(function (e){return e.name})
         runTest(test,'async_testing/test/examples/' + j,expected.expected[j])
       }
     console.log(j)
     })(i)
   }
-
-
 
 
 
