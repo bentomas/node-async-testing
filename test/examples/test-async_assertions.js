@@ -2,6 +2,8 @@ if (module == require.main) {
   return require('../lib/async_testing').run(process.ARGV);
 }
 
+var u = require('util')
+
 module.exports = {
   'test success': function(test) {
     setTimeout(function() {
@@ -12,9 +14,12 @@ module.exports = {
 
   'test fail': function(test) {
     setTimeout(function() {
-//        console.log("sdfhlasflasdjflasjdkasdhfklasdhfod"
+//      console.log("~m~12~m~sdfhlasflasdjflasjdkasdhfklasdhfod")
+    
+//u.print('ccccccccccccccccccccccccc')
         test.ok(false, 'This should be false');
         test.finish();
+//u.print('ccccccccccccccccccccccccc')
       }, 500);
   },
 

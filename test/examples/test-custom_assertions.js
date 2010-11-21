@@ -1,4 +1,6 @@
 
+//require('sys')
+
 var async_testing = require('async_testing');
 if (module == require.main) {
   return async_testing.run(process.ARGV);

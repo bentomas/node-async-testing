@@ -1,5 +1,5 @@
 
-var messages = require('async_testing/lib/messages')
+var messages = require('async_testing/lib/messages2')
   , inspect = require('util').inspect
   , examples = 
       [ "hello"
@@ -11,16 +11,11 @@ var messages = require('async_testing/lib/messages')
       , [24,235,436234]
       , {hello: ['a','b','c']}
       ]
-  , invalid =
-      [ '~m~5~m~"aaaaaaaaaaa"'
-      , '~m~5~X~"aaaaaaaaaaa"'
-      , '~m~hil~m~"a\naaaaaaaaaa"'
-      ]
 exports ['(standard interface) messageDecode (messageEncode(X).split(\'\n\')) returns X'] = function(test) {
 
  function checkEncodeDecode(x){
     console.log("message:" + messages.messageEncode(x))
-    test.deepEqual(messages.messageDecode(messages.messageEncode(x).split('\n')),[[x]])
+    test.deepEqual(messages.messageDecode(messages.messageEncode(x).split('\n')),[x])
   }
        
   examples.forEach(checkEncodeDecode)
@@ -29,28 +24,32 @@ exports ['(standard interface) messageDecode (messageEncode(X).split(\'\n\')) re
   test.finish()
 }
 
-exports [' decode (encode(X)) returns X'] = function(test) {
-
- function checkEncodeDecode(x){
-    test.deepEqual(messages.decode(messages.encode(x)),x)
+exports ['test that messages still works in noise'] = function (test){
+  var noises =
+        [ "dffjasldfjdlsjf"
+        , '0'
+        , ' '
+        , '___'
+        , '~'
+        , '~m~4' ] 
+  
+ function checkEncodeDecodeWithNoise(x,noise){
+    
+    console.log("message:" + messages.messageEncode(x))
+    test.deepEqual(messages.messageDecode((noise + messages.messageEncode(x)).split('\n')),[x])
+    test.deepEqual(messages.messageDecode((messages.messageEncode(x) + noise).split('\n')),[x])
   }
        
-  examples.forEach(checkEncodeDecode)
-  checkEncodeDecode(examples)
-
+  noises.forEach(function (n){
+    examples.forEach(function(e){checkEncodeDecodeWithNoise(e,n)})
+  })
+  checkEncodeDecodeWithNoise(examples,"asflasdfjlsdf")
   test.finish()
 }
 
-exports [' decode (INVALID) throws exception'] = function(test) {
-
- function checkDecodeInvalid(x){
-    test.throws(function(){
-      messages.decode(x)
-    },"invalid message should throw exception:" + x)
-  }
-       
-  invalid.forEach(checkDecodeInvalid)
-
+exports ['useMagicNumbers'] = function (test){
+  test.ok(messages.useMagicNumbers)
+  messager = messages.useMagicNumbers({start: 213,end:32425})
+  test.ok(messager.useMagicNumbers)
   test.finish()
 }
-

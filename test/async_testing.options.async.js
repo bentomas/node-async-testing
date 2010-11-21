@@ -3,8 +3,9 @@
 //check that runSuite callbacks are executed in order.
   var expected = require('./examples/expected_results')
     , subtree = require('async_testing/lib/subtree')
-//    , asynct = require('async_testing')
-    , asynct = require('async_testing/lib/child_http')
+    , asynct = require('async_testing')
+//    , asynct = require('async_testing/lib/child_http')
+//    , asynct = require('async_testing/lib/child2')
 
 //var testing = require('async_testing/lib/testing')
   , inspect = require('util').inspect
@@ -51,12 +52,13 @@ function checkCallbacks (test, filename,expected){
     finished.push(testName)
   }
   function suiteDone(status,report){
+  console.log("***" + filename + " DONE")
+
     test.deepEqual(started,[],"onTestStart called for all tests, started tests where :" + inspect(started))
     test.deepEqual(finished.sort(),tests.sort(),"onTestDone called for all tests")
     
     subtree.assert_subtree(expected,report)
 
-  console.log("***" + filename + " DONE")
 
   console.log()
 
