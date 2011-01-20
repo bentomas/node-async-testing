@@ -1,0 +1,25 @@
+#! /usr/bin/env node
+
+try {
+  // always check for a local copy of async_testing first
+  var testing = require('async_testing');
+}
+catch(err) {
+  if( err.message == "Cannot find module './async_testing'" ) {
+    // look in the path for async_testing
+    var testing = require('async_testing');
+  }
+  else {
+    throw err;
+  }
+}
+
+exports.test = function (test){
+  test.ok(false,"this should not be called!")
+}
+process.ARGV.shift() //node
+process.ARGV.shift() // this file... if i leave this in it tried to run this file as a test, which goes into infinite loop and doesn't exit.
+process.ARGV.unshift('node')
+
+testing.run(process.ARGV);
+
