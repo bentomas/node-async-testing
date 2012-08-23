@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/bentomas/node-async-testing.png)](http://travis-ci.org/bentomas/node-async-testing)
 node-async-testing
 ==================
 
